@@ -211,31 +211,20 @@ for (i = 0, l = charts.length; i < l; i++) {
 
 var assemblies = [
   {
-    "name": "B3.API",
-    "classes": [
-      { "name": "B3.API.Controllers.CalculadoraCdbController", "rp": "B3.API_CalculadoraCdbController.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 31, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.API.Extensions.APIExtension", "rp": "B3.API_APIExtension.html", "cl": 7, "ucl": 0, "cal": 7, "tl": 21, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.API.Filters.ModelStateValidationFilter", "rp": "B3.API_ModelStateValidationFilter.html", "cl": 18, "ucl": 0, "cal": 18, "tl": 34, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.API.Middlewares.ExceptionMiddleware", "rp": "B3.API_ExceptionMiddleware.html", "cl": 41, "ucl": 0, "cal": 41, "tl": 60, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.API.Models.ErroResponse", "rp": "B3.API_ErroResponse.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 9, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.API.Request.CdbRequest", "rp": "B3.API_CdbRequest.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "Program", "rp": "B3.API_Program.html", "cl": 21, "ucl": 0, "cal": 21, "tl": 38, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-    ]},
-  {
     "name": "B3.Application",
     "classes": [
       { "name": "B3.Application.Dtos.CdbResultDto", "rp": "B3.Application_CdbResultDto.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.Application.Extensions.ApplicationServicesExtension", "rp": "B3.Application_ApplicationServicesExtension.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "B3.Application.Extensions.ApplicationServicesExtension", "rp": "B3.Application_ApplicationServicesExtension.html", "cl": 0, "ucl": 4, "cal": 4, "tl": 18, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "B3.Application.Services.CalculadoraCdbApplicationService", "rp": "B3.Application_CalculadoraCdbApplicationService.html", "cl": 13, "ucl": 0, "cal": 13, "tl": 28, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "B3.Domain",
     "classes": [
       { "name": "B3.Domain.Entities.Cdb", "rp": "B3.Domain_Cdb.html", "cl": 4, "ucl": 0, "cal": 4, "tl": 12, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.Domain.Extensions.DomainServicesExtension", "rp": "B3.Domain_DomainServicesExtension.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 21, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.Domain.Services.CalculoCdbDomainService", "rp": "B3.Domain_CalculoCdbDomainService.html", "cl": 25, "ucl": 2, "cal": 27, "tl": 46, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.Domain.Services.TabelaImpostoService", "rp": "B3.Domain_TabelaImpostoService.html", "cl": 10, "ucl": 0, "cal": 10, "tl": 22, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "B3.Domain.Validations.CdbCalculoValidation", "rp": "B3.Domain_CdbCalculoValidation.html", "cl": 9, "ucl": 0, "cal": 9, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "B3.Domain.Extensions.DomainServicesExtension", "rp": "B3.Domain_DomainServicesExtension.html", "cl": 0, "ucl": 6, "cal": 6, "tl": 21, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "B3.Domain.Services.CalculoCdbDomainService", "rp": "B3.Domain_CalculoCdbDomainService.html", "cl": 0, "ucl": 27, "cal": 27, "tl": 46, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "B3.Domain.Services.TabelaImpostoService", "rp": "B3.Domain_TabelaImpostoService.html", "cl": 0, "ucl": 10, "cal": 10, "tl": 22, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "B3.Domain.Validations.CdbCalculoValidation", "rp": "B3.Domain_CdbCalculoValidation.html", "cl": 0, "ucl": 9, "cal": 9, "tl": 23, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
