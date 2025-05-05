@@ -1,0 +1,28 @@
+<form [formGroup]="form" (ngSubmit)="calcular()">
+  <div>
+    <label>Valor Inicial:</label>
+    <input type="number" step="0.01" min="0.01" formControlName="valorInicial">
+    <div *ngIf="form.get('valorInicial')?.invalid && form.get('valorInicial')?.touched" style="color: red;">
+      <small *ngIf="form.get('valorInicial')?.errors?.['required']">Preenchimento do campor Valor Inicial é obrigatório.</small>
+      <small *ngIf="form.get('valorInicial')?.errors?.['min']">Ovalor mínido do é 0,01.</small>
+    </div>
+  </div>
+
+  <div>
+    <label>Prazo em Meses:</label>
+    <input type="number" min="1" formControlName="prazoEmMeses">
+    <div *ngIf="form.get('prazoEmMeses')?.invalid && form.get('prazoEmMeses')?.touched" style="color: red;">
+      <small *ngIf="form.get('prazoEmMeses')?.errors?.['required']">Preencmento do prazo é obrigatório.</small>
+      <small *ngIf="form.get('prazoEmMeses')?.errors?.['min']">O prazo deve ser maior que 1.</small>
+    </div>
+  </div>
+
+  <button type="submit" [disabled]="form.invalid">Calcular</button>
+</form>
+
+<p *ngIf="erro" style="color:red; margin-top: 1em;">{{ erro }}</p>
+
+<div *ngIf="resultado">
+  <p><strong>Valor Bruto:</strong> {{ resultado.valorBruto | currency:'BRL' }}</p>
+  <p><strong>Valor Líquido:</strong> {{ resultado.valorLiquido | currency:'BRL' }}</p>
+</div>

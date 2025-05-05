@@ -1,0 +1,15 @@
+<Project>
+	<PropertyGroup>
+		<!-- Ativa os analisadores do .NET (Roslyn) -->
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+		<!-- Habilita todas as regras recomendadas -->
+		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+
+		<!-- NÃO trata warnings como erro, permitindo corrigir aos poucos -->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+		<!-- Opcional: associa um arquivo .ruleset (caso exista na raiz da solução) -->
+		<CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+	</PropertyGroup>
+</Project>
