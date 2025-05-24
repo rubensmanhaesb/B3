@@ -1,11 +1,9 @@
-﻿using System.Net.Http.Json;
-using B3.API.Request;
+﻿using B3.API.Models;
 using B3.Application.Dtos;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using B3.API;
-using B3.API.Models;
 using System.Net;
+using System.Net.Http.Json;
 
 
 namespace APITests
@@ -38,8 +36,8 @@ namespace APITests
         {
             var request = new CdbRequest
             {
-                ValorInicial = 0, 
-                PrazoEmMeses = 1  
+                ValorInicial = 0,
+                PrazoEmMeses = 1
             };
 
             var response = await _client.PostAsJsonAsync("/api/CalculadoraCdb", request);

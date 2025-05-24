@@ -1,10 +1,9 @@
-﻿using B3.Domain.Services;
-using Moq;
-using B3.Domain.Interfaces;
-using B3.Domain.Entities;
+﻿using B3.Domain.Interfaces;
+using B3.Domain.Services;
+using B3.Domain.Validations;
 using FluentValidation;
 using FluentValidation.Results;
-using B3.Domain.Validations;
+using Moq;
 
 namespace DomainTests
 {

@@ -16,7 +16,7 @@ namespace APITests
         [Fact]
         public void Deve_Retornar_BadRequest_Quando_ModelState_Invalido()
         {
-            
+
             var modelState = new ModelStateDictionary();
             modelState.AddModelError("ValorInicial", "Valor inválido");
 
@@ -34,10 +34,10 @@ namespace APITests
 
             var filter = new ModelStateValidationFilter();
 
-            
+
             filter.OnActionExecuting(context);
 
-            
+
             context.Result.Should().BeOfType<BadRequestObjectResult>();
             var result = context.Result as BadRequestObjectResult;
             result!.StatusCode.Should().Be(400);
@@ -51,7 +51,7 @@ namespace APITests
         [Fact]
         public void Nao_Deve_Fazer_Nada_Se_ModelState_Valido()
         {
-            
+
             var modelState = new ModelStateDictionary(); // Sem erros
 
             var actionContext = new ActionContext(
@@ -62,16 +62,16 @@ namespace APITests
 
             var context = new ActionExecutingContext(
                 actionContext,
-                [] ,
+                [],
                 new Dictionary<string, object?>() { },
                 new Mock<Controller>().Object);
 
             var filter = new ModelStateValidationFilter();
 
-            
+
             filter.OnActionExecuting(context);
 
-            
+
             context.Result.Should().BeNull();
         }
         [Fact]

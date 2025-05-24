@@ -1,5 +1,5 @@
 ﻿using B3.API.Middlewares;
-using B3.API.Request;
+using B3.Application.Dtos;
 using FluentAssertions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

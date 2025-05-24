@@ -9,7 +9,7 @@ namespace B3.Domain.Extensions
 {
     public static class DomainServicesExtension
     {
-        public static  IServiceCollection AddDomainServices(this IServiceCollection services)
+        public static IServiceCollection AddDomainServices(this IServiceCollection services)
         {
             services.AddScoped<ICalculadoraCdbDomainService, CalculoCdbDomainService>();
             services.AddScoped<ITabelaImpostoService, TabelaImpostoService>();

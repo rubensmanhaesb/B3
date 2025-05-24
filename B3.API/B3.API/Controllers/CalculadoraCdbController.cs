@@ -1,5 +1,4 @@
 ﻿using B3.API.Models;
-using B3.API.Request;
 using B3.Application.Dtos;
 using B3.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;

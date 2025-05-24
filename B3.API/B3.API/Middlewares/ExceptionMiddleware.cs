@@ -1,6 +1,6 @@
-﻿using System.Net;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
 
 namespace B3.API.Middlewares
 {

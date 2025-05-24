@@ -15,7 +15,7 @@ namespace B3.Domain.Services
         private readonly IValidator<(decimal, int)> _validator = validator;
 
 
-        public  Cdb Calcular(decimal valorInicial, int prazoMeses)
+        public Cdb Calcular(decimal valorInicial, int prazoMeses)
         {
             var valor = valorInicial;
 

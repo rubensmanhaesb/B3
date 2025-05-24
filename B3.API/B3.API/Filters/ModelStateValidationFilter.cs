@@ -1,6 +1,6 @@
 ﻿using B3.API.Models;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace B3.API.Filters
 {

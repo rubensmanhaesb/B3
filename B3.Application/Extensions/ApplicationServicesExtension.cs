@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace B3.Application.Extensions
 {
-    public static  class ApplicationServicesExtension
+    public static class ApplicationServicesExtension
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services )
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
 
             services.AddScoped<ICalculadoraCdbApplicationService, CalculadoraCdbApplicationService>();

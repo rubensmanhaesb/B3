@@ -1,6 +1,4 @@
 ﻿using B3.Domain.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace B3.Domain.Services
 {
