@@ -36,11 +36,13 @@ jobs:
       - name: Copy Angular dist to API wwwroot
         shell: pwsh
         run: |
-            if (Test-Path "B3.API/wwwroot") {
-              Remove-Item -Recurse -Force "B3.API/wwwroot"
+            if (Test-Path "B3.API\wwwroot") {
+              Remove-Item -Recurse -Force "B3.API\wwwroot"
             }
-            New-Item -ItemType Directory -Path "B3.API/wwwroot"
-            Copy-Item -Path "cdbWeb/dist/cdb-web/." -Destination "B3.API/wwwroot" -Recurse -Force
+            New-Item -ItemType Directory -Path "B3.API\wwwroot"
+            Copy-Item -Path "cdbWeb\dist\cdb-web\*" -Destination "B3.API\wwwroot" -Recurse -Force
+            Write-Host "Arquivos copiados para wwwroot:"
+            Get-ChildItem -Path "B3.API\wwwroot" -Recurse
 
       - name: Build with dotnet
         run: dotnet build B3.API/B3.API.sln --configuration Release
