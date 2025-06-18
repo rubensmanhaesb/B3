@@ -29,7 +29,7 @@ jobs:
         run: dotnet restore  B3/B3.API/B3.API.sln
 
       - name: Compilar o projeto
-        run: dotnet build B3.API.sln  --configuration Release --no-restore
+        run: dotnet build B3/B3.API/B3.API.sln   --configuration Release --no-restore
 
       - name: Upload da compilação
         uses: actions/upload-artifact@v4
