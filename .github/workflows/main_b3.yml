@@ -37,12 +37,12 @@ jobs:
         shell: pwsh
         run: |
             if (Test-Path "B3.API/wwwroot") {
-              Remove-Item -Recurse -Force "B3.API/wwwroot"
-            }
-            New-Item -ItemType Directory -Path "B3.API/wwwroot"
-            $distPath = Get-ChildItem -Directory "cdbWeb/dist" | Select-Object -First 1
-            Copy-Item -Path "cdbWeb/dist/$($distPath.Name)/*" -Destination "B3.API/wwwroot" -Recurse -Force
-
+                  Remove-Item -Recurse -Force "B3.API/wwwroot"
+                }
+                New-Item -ItemType Directory -Path "B3.API/wwwroot"
+    
+                $distFolder = Get-ChildItem -Directory "cdbWeb/dist" | Select-Object -First 1
+                Copy-Item -Path (Join-Path -Path $distFolder.FullName -ChildPath '*') -Destination "B3.API/wwwroot" -Recurse -Force
 
 
       - name: Build with dotnet
