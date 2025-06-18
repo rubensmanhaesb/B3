@@ -27,12 +27,18 @@ app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CDB API V1");
 });
+// 
+app.UseDefaultFiles();     // permite index.html automático
+app.UseStaticFiles();      // serve wwwroot
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Fallback para Angular
+app.MapFallbackToFile("index.html");
 
 app.Run();
 public partial class Program { }
