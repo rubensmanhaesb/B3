@@ -1,5 +1,5 @@
 # Nome da PIPELINE
-name: Deploy UsersApp
+name: Deploy B3.API
 
 # Define o gatilho da PIPELINE
 # Executado sempre que um PUSH for feito na BRANCH main
