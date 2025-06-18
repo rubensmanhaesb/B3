@@ -1,8 +1,5 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - B3
- 
+
 on:
   push:
     branches:
@@ -13,7 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -23,11 +20,30 @@ jobs:
         with:
           dotnet-version: '9.x'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Angular dependencies
+        working-directory: cdbWeb
+        run: npm ci
+
+      - name: Build Angular app
+        working-directory: cdbWeb
+        run: npm run build -- --configuration production
+
+      - name: Copy Angular dist to API wwwroot
+        run: |
+          if exist "B3.API\wwwroot" rmdir /s /q B3.API\wwwroot
+          mkdir B3.API\wwwroot
+          for /d %%i in (cdbWeb\dist\*) do xcopy /E /I /Y "%%i" B3.API\wwwroot
+
       - name: Build with dotnet
-        run: dotnet build  B3.API/B3.API.sln --configuration Release
+        run: dotnet build B3.API/B3.API.sln --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish  B3.API/B3.API.sln -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish B3.API/B3.API.sln -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -42,15 +58,15 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -65,4 +81,3 @@ jobs:
           app-name: 'B3'
           slot-name: 'Production'
           package: .
-          
