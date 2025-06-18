@@ -44,6 +44,7 @@ jobs:
             Write-Host "Arquivos copiados para wwwroot:"
             Get-ChildItem -Path "B3.API\wwwroot" -Recurse
 
+
       - name: Build with dotnet
         run: dotnet build B3.API/B3.API.sln --configuration Release
 
