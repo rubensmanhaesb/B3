@@ -40,8 +40,7 @@ jobs:
               Remove-Item -Recurse -Force "B3.API/wwwroot"
             }
             New-Item -ItemType Directory -Path "B3.API/wwwroot"
-            Copy-Item -Path "cdbWeb/dist/cdb-web/*" -Destination "B3.API/wwwroot" -Recurse -Force
-
+            Copy-Item -Path "cdbWeb/dist/cdb-web/." -Destination "B3.API/wwwroot" -Recurse -Force
 
       - name: Build with dotnet
         run: dotnet build B3.API/B3.API.sln --configuration Release
