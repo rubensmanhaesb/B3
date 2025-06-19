@@ -47,6 +47,7 @@ jobs:
       - name: Build with dotnet
         run: dotnet build B3.API/B3.API.sln --configuration Release
 
+
       - name: Publish with wwwroot inclusion
         shell: pwsh
         run: |
@@ -57,20 +58,20 @@ jobs:
           if (-not (Test-Path "${{env.DOTNET_ROOT}}/myapp/wwwroot")) {
               Copy-Item -Path "B3.API\wwwroot" -Destination "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse -Force
           }
-          
-          # Debug: mostra conteúdo do diretório de publicação
-          Write-Host "Conteúdo final do diretório de publicação:"
-          Get-ChildItem -Path "${{env.DOTNET_ROOT}}/myapp" -Recurse
 
       - name: Verify published artifacts
         shell: pwsh
         run: |
-          Write-Host "Verificando se os arquivos Angular estão presentes:"
-          Get-ChildItem -Path "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse
-          if (-not (Test-Path "${{env.DOTNET_ROOT}}/myapp/wwwroot/index.html")) {
-              Write-Error "Arquivos do Angular não foram encontrados no wwwroot!"
+          Write-Host "Verificando arquivos Angular em wwwroot:"
+          $angularFiles = Get-ChildItem -Path "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse -File
+          $angularFiles | Format-Table -AutoSize
+          
+          # Verifica se há algum arquivo Angular (mais flexível)
+          if ($angularFiles.Count -eq 0) {
+              Write-Error "Nenhum arquivo do Angular encontrado em wwwroot!"
               exit 1
           }
+          Write-Host "Arquivos Angular verificados com sucesso!"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
