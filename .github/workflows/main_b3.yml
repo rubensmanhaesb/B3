@@ -6,6 +6,10 @@ on:
       - main 
   workflow_dispatch:
 
+env:
+  DOTNET_ROOT: C:\Program Files\dotnet
+  PUBLISH_DIR: ${{env.DOTNET_ROOT}}/myapp
+
 jobs:
   build:
     runs-on: windows-latest
@@ -33,68 +37,74 @@ jobs:
         working-directory: cdbWeb
         run: npm run build -- --configuration=production
 
-      - name: Copy Angular dist to API wwwroot
+      - name: Verify Angular build
         shell: pwsh
+        working-directory: cdbWeb
         run: |
-            # Remove wwwroot existente
-            Remove-Item -Recurse -Force "B3.API\wwwroot" -ErrorAction SilentlyContinue
-    
-            # Cria diretório destino
-            New-Item -ItemType Directory -Path "B3.API\wwwroot" -Force
-    
-            # Copia APENAS os arquivos do /browser para a raiz do wwwroot
-            Copy-Item -Path "cdbWeb\dist\cdb-web\browser\*" -Destination "B3.API\wwwroot" -Recurse -Force
-    
-            # Verifica a cópia
-            $indexDest = "B3.API\wwwroot\index.html"
-            if (!(Test-Path $indexDest) -or (Get-Item $indexDest).Length -eq 0) {
-                Write-Error "Falha na cópia do index.html - arquivo vazio ou ausente"
-                exit 1
-            }
-      - name: dotnet publish
-        shell: pwsh
-        run: |
-            # Publica preservando wwwroot
-            dotnet publish B3.API/B3.API/B3.API.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp" /p:DeleteExistingFiles=false
-    
-            # Verificação extra
-            Write-Host "Conteúdo do index.html publicado:"
-            Get-Content "${{env.DOTNET_ROOT}}/myapp/wwwroot/index.html" -Head 10
-
-      - name: Build with dotnet
-        run: dotnet build B3.API/B3.API.sln --configuration Release
-
-
-      - name: Publish with wwwroot inclusion
-        shell: pwsh
-        run: |
-          # Publica a aplicação
-          dotnet publish B3.API/B3.API/B3.API.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
-          
-          # Garante que o wwwroot está no local correto
-          if (-not (Test-Path "${{env.DOTNET_ROOT}}/myapp/wwwroot")) {
-              Copy-Item -Path "B3.API\wwwroot" -Destination "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse -Force
-          }
-
-      - name: Verify published artifacts
-        shell: pwsh
-        run: |
-          Write-Host "Verificando arquivos Angular em wwwroot:"
-          $angularFiles = Get-ChildItem -Path "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse -File
-          $angularFiles | Format-Table -AutoSize
-          
-          # Verifica se há algum arquivo Angular (mais flexível)
-          if ($angularFiles.Count -eq 0) {
-              Write-Error "Nenhum arquivo do Angular encontrado em wwwroot!"
+          $indexPath = "dist\cdb-web\browser\index.html"
+          if (-not (Test-Path $indexPath)) {
+              Write-Error "Angular index.html not found in dist folder!"
               exit 1
           }
-          Write-Host "Arquivos Angular verificados com sucesso!"
+          if ((Get-Item $indexPath).Length -eq 0) {
+              Write-Error "Angular index.html is empty!"
+              exit 1
+          }
 
-      - name: Upload artifact for deployment job
+      - name: Prepare wwwroot directory
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force "B3.API\wwwroot" -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path "B3.API\wwwroot" -Force
+
+      - name: Copy Angular assets to wwwroot
+        shell: pwsh
+        run: |
+          Copy-Item -Path "cdbWeb\dist\cdb-web\browser\*" -Destination "B3.API\wwwroot" -Recurse -Force
+          
+          # Verify copy
+          $indexDest = "B3.API\wwwroot\index.html"
+          if (-not (Test-Path $indexDest)) {
+              Write-Error "index.html not copied to wwwroot!"
+              exit 1
+          }
+          if ((Get-Item $indexDest).Length -eq 0) {
+              Write-Error "Copied index.html is empty!"
+              exit 1
+          }
+
+      - name: Build .NET solution
+        run: dotnet build B3.API/B3.API.sln --configuration Release
+
+      - name: Publish .NET application
+        shell: pwsh
+        run: |
+          # Ensure publish directory exists
+          New-Item -ItemType Directory -Path "$env:PUBLISH_DIR" -Force
+          
+          # Publish with wwwroot preservation
+          dotnet publish B3.API/B3.API/B3.API.csproj `
+            -c Release `
+            -o "$env:PUBLISH_DIR" `
+            /p:DeleteExistingFiles=false
+          
+          # Verify published files
+          $publishedIndex = "$env:PUBLISH_DIR\wwwroot\index.html"
+          if (-not (Test-Path $publishedIndex)) {
+              Write-Error "index.html missing in published output!"
+              Get-ChildItem "$env:PUBLISH_DIR" -Recurse
+              exit 1
+          }
+          if ((Get-Item $publishedIndex).Length -eq 0) {
+              Write-Error "Published index.html is empty!"
+              exit 1
+          }
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{env.PUBLISH_DIR}}
 
   deploy:
     runs-on: windows-latest
@@ -107,10 +117,24 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ${{env.PUBLISH_DIR}}
+
+      - name: Verify downloaded files
+        shell: pwsh
+        run: |
+          $indexPath = "$env:PUBLISH_DIR\wwwroot\index.html"
+          if (-not (Test-Path $indexPath)) {
+              Write-Error "index.html missing in downloaded artifact!"
+              exit 1
+          }
+          if ((Get-Item $indexPath).Length -eq 0) {
+              Write-Error "Downloaded index.html is empty!"
+              exit 1
+          }
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -125,4 +149,4 @@ jobs:
         with:
           app-name: 'B3'
           slot-name: 'Production'
-          package: .
+          package: ${{env.PUBLISH_DIR}}
