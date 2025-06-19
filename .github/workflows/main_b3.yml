@@ -6,6 +6,10 @@ on:
       - main 
   workflow_dispatch:
 
+env:
+  DOTNET_ROOT: C:\Program Files\dotnet
+  ARTIFACT_DIR: ${{env.DOTNET_ROOT}}/myapp
+
 jobs:
   build:
     runs-on: windows-latest
@@ -33,51 +37,82 @@ jobs:
         working-directory: cdbWeb
         run: npm run build -- --configuration=production
 
-      - name: Copy Angular dist to API wwwroot
+      - name: Verify Angular build output
         shell: pwsh
+        working-directory: cdbWeb
         run: |
-            if (Test-Path "B3.API\wwwroot") {
-              Remove-Item -Recurse -Force "B3.API\wwwroot"
-            }
-            New-Item -ItemType Directory -Path "B3.API\wwwroot"
-            Copy-Item -Path "cdbWeb\dist\cdb-web\*" -Destination "B3.API\wwwroot" -Recurse -Force
-            Write-Host "Arquivos copiados para wwwroot:"
-            Get-ChildItem -Path "B3.API\wwwroot" -Recurse
-
-      - name: Build with dotnet
-        run: dotnet build B3.API/B3.API.sln --configuration Release
-
-
-      - name: Publish with wwwroot inclusion
-        shell: pwsh
-        run: |
-          # Publica a aplicação
-          dotnet publish B3.API/B3.API/B3.API.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
-          
-          # Garante que o wwwroot está no local correto
-          if (-not (Test-Path "${{env.DOTNET_ROOT}}/myapp/wwwroot")) {
-              Copy-Item -Path "B3.API\wwwroot" -Destination "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse -Force
-          }
-
-      - name: Verify published artifacts
-        shell: pwsh
-        run: |
-          Write-Host "Verificando arquivos Angular em wwwroot:"
-          $angularFiles = Get-ChildItem -Path "${{env.DOTNET_ROOT}}/myapp/wwwroot" -Recurse -File
-          $angularFiles | Format-Table -AutoSize
-          
-          # Verifica se há algum arquivo Angular (mais flexível)
-          if ($angularFiles.Count -eq 0) {
-              Write-Error "Nenhum arquivo do Angular encontrado em wwwroot!"
+          $indexPath = "dist\cdb-web\browser\index.html"
+          if (-not (Test-Path $indexPath)) {
+              Write-Error "index.html not found in Angular build output!"
               exit 1
           }
-          Write-Host "Arquivos Angular verificados com sucesso!"
+          
+          $content = Get-Content $indexPath -Raw
+          if ($content.Trim().Length -eq 0) {
+              Write-Error "Angular index.html is empty!"
+              exit 1
+          }
+          
+          Write-Host "Angular build verified successfully"
+          Get-ChildItem "dist\cdb-web\browser" | Format-Table Name, Length
 
-      - name: Upload artifact for deployment job
+      - name: Prepare wwwroot directory
+        shell: pwsh
+        run: |
+          # Clean existing wwwroot
+          Remove-Item -Recurse -Force "B3.API\wwwroot" -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path "B3.API\wwwroot" -Force
+
+      - name: Copy Angular assets
+        shell: pwsh
+        run: |
+          $source = "cdbWeb\dist\cdb-web\browser\*"
+          $destination = "B3.API\wwwroot"
+          
+          Copy-Item -Path $source -Destination $destination -Recurse -Force
+          
+          # Verify copy
+          $indexDest = "$destination\index.html"
+          if (-not (Test-Path $indexDest)) {
+              Write-Error "index.html not found in wwwroot after copy!"
+              exit 1
+          }
+          
+          if ((Get-Item $indexDest).Length -eq 0) {
+              Write-Error "Copied index.html is empty!"
+              exit 1
+          }
+
+      - name: Build .NET solution
+        run: dotnet build B3.API/B3.API.sln --configuration Release
+
+      - name: Publish .NET application
+        shell: pwsh
+        run: |
+          # Publish with wwwroot preservation
+          dotnet publish B3.API/B3.API/B3.API.csproj `
+            -c Release `
+            -o $env:ARTIFACT_DIR `
+            /p:DeleteExistingFiles=false
+          
+          # Verify published files
+          $publishedIndex = "$env:ARTIFACT_DIR\wwwroot\index.html"
+          if (-not (Test-Path $publishedIndex)) {
+              Write-Error "index.html missing in published output!"
+              Get-ChildItem "$env:ARTIFACT_DIR\wwwroot" -Recurse
+              exit 1
+          }
+          
+          if ((Get-Item $publishedIndex).Length -eq 0) {
+              Write-Error "Published index.html is empty!"
+              exit 1
+          }
+
+      - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{env.ARTIFACT_DIR}}
 
   deploy:
     runs-on: windows-latest
@@ -90,10 +125,25 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ${{env.ARTIFACT_DIR}}
+
+      - name: Verify downloaded artifact
+        shell: pwsh
+        run: |
+          $indexPath = "$env:ARTIFACT_DIR\wwwroot\index.html"
+          if (-not (Test-Path $indexPath)) {
+              Write-Error "index.html missing in downloaded artifact!"
+              exit 1
+          }
+          
+          if ((Get-Item $indexPath).Length -eq 0) {
+              Write-Error "Downloaded index.html is empty!"
+              exit 1
+          }
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -108,4 +158,4 @@ jobs:
         with:
           app-name: 'B3'
           slot-name: 'Production'
-          package: .
+          package: ${{env.ARTIFACT_DIR}}
