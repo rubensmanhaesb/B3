@@ -49,7 +49,8 @@ jobs:
         run: dotnet build B3.API/B3.API.sln --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish B3.API/B3.API.sln -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish B3.API/B3.API.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
