@@ -13,7 +13,6 @@ jobs:
       contents: read
     
     env:
-      DOTNET_ROOT: C:\Program Files\dotnet
       PUBLISH_DIR: ${{ github.workspace }}\publish
 
     steps:
@@ -79,7 +78,8 @@ jobs:
       - name: Publish .NET application
         shell: pwsh
         run: |
-          # Ensure publish directory exists
+          # Ensure publish directory exists and is empty
+          Remove-Item -Recurse -Force "$env:PUBLISH_DIR" -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path "$env:PUBLISH_DIR" -Force
           
           # Publish with wwwroot preservation
@@ -87,6 +87,11 @@ jobs:
             -c Release `
             -o "$env:PUBLISH_DIR" `
             /p:DeleteExistingFiles=false
+          
+          # Manually copy wwwroot if not included
+          if (-not (Test-Path "$env:PUBLISH_DIR\wwwroot")) {
+              Copy-Item -Path "B3.API\wwwroot" -Destination "$env:PUBLISH_DIR\wwwroot" -Recurse -Force
+          }
           
           # Verify published files
           $publishedIndex = "$env:PUBLISH_DIR\wwwroot\index.html"
