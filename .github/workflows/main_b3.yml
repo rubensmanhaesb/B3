@@ -94,16 +94,17 @@ jobs:
 
       - name: Verify Code Coverage >= 90%
         run: |
-            reportgenerator "-reports:./TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" -reporttypes:HtmlInline_AzurePipelines
-            $coverage = Select-String -Path coverage-report/index.htm -Pattern "Line coverage.*?(\d+\.\d+)%"
-            $percent = [double]($coverage.Matches.Groups[1].Value)
-            if ($percent -lt 90) {
-                Write-Error "Code coverage is below 90%: $percent%"
-                exit 1
-            }
+          [xml]$xml = Get-Content "./TestResults/**/coverage.cobertura.xml"
+          $lineCoverage = $xml.coverage.'@line-rate'
+          $percent = [math]::Round([double]$lineCoverage * 100, 2)
+
+          Write-Host " Code coverage: $percent%"
+
+          if ($percent -lt 90) {
+              Write-Error " Code coverage is below 90%: $percent%"
+              exit 1
+          }
         shell: pwsh
-
-
 
   buildApplicationTests:
     runs-on: windows-latest
@@ -126,14 +127,18 @@ jobs:
 
       - name: Verify Code Coverage >= 90%
         run: |
-            reportgenerator "-reports:./TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" -reporttypes:HtmlInline_AzurePipelines
-            $coverage = Select-String -Path coverage-report/index.htm -Pattern "Line coverage.*?(\d+\.\d+)%"
-            $percent = [double]($coverage.Matches.Groups[1].Value)
-            if ($percent -lt 90) {
-                Write-Error "Code coverage is below 90%: $percent%"
-                exit 1
-            }
+          [xml]$xml = Get-Content "./TestResults/**/coverage.cobertura.xml"
+          $lineCoverage = $xml.coverage.'@line-rate'
+          $percent = [math]::Round([double]$lineCoverage * 100, 2)
+
+          Write-Host " Code coverage: $percent%"
+
+          if ($percent -lt 90) {
+              Write-Error " Code coverage is below 90%: $percent%"
+              exit 1
+          }
         shell: pwsh
+
 
 
   buildDomainTests:
@@ -157,13 +162,16 @@ jobs:
 
       - name: Verify Code Coverage >= 90%
         run: |
-            reportgenerator "-reports:./TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" -reporttypes:HtmlInline_AzurePipelines
-            $coverage = Select-String -Path coverage-report/index.htm -Pattern "Line coverage.*?(\d+\.\d+)%"
-            $percent = [double]($coverage.Matches.Groups[1].Value)
-            if ($percent -lt 90) {
-                Write-Error "Code coverage is below 90%: $percent%"
-                exit 1
-            }
+          [xml]$xml = Get-Content "./TestResults/**/coverage.cobertura.xml"
+          $lineCoverage = $xml.coverage.'@line-rate'
+          $percent = [math]::Round([double]$lineCoverage * 100, 2)
+
+          Write-Host " Code coverage: $percent%"
+
+          if ($percent -lt 90) {
+              Write-Error " Code coverage is below 90%: $percent%"
+              exit 1
+          }
         shell: pwsh
      
   buildAPI:
