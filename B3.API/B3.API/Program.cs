@@ -4,6 +4,12 @@ using B3.Application.Extensions;
 using B3.Domain.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(80); // <-- necessário para funcionar no Docker
+});
+
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 // Add services to the container.
 
