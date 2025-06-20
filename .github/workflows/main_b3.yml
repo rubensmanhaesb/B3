@@ -76,12 +76,12 @@ jobs:
 
   buildAPITest:
     runs-on: windows-latest
+    needs: [buildApplicationTests]
     permissions:
       contents: read
     
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
@@ -92,6 +92,7 @@ jobs:
 
   buildApplicationTests:
     runs-on: windows-latest
+    needs: [buildDomainTests]
     permissions:
       contents: read
     
@@ -124,6 +125,7 @@ jobs:
       
   buildAPI:
     runs-on: windows-latest
+    needs: [buildAPITest]
     permissions:
       contents: read
     
@@ -185,7 +187,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: [buildAPI, buildAngular, buildAPITest, buildApplicationTests, buildDomainTests]
+    needs: [buildAPI, buildAngular]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
