@@ -74,7 +74,7 @@ jobs:
           name: wwwroot
           path: B3.API/wwwroot
 
-  buildTest:
+  buildAPITest:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -89,11 +89,42 @@ jobs:
 
       - name: Run Tests for B3.API Project
         run: dotnet test APITests/APITests.csproj --configuration Release
-      
 
+  buildApplicationTests:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Run Tests for B3.API Project
+        run: dotnet test ApplicationTests/ApplicationTests.csproj --configuration Release
+
+  buildDomainTests:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Run Tests for B3.API Project
+        run: dotnet test DomainTests/DomainTests.csproj --configuration Release
+      
   buildAPI:
     runs-on: windows-latest
-    needs: [buildAngular, buildTest]
+    needs: [buildAngular, buildAPITest, buildApplicationTests, buildDomainTests]
     permissions:
       contents: read
     
