@@ -76,7 +76,6 @@ jobs:
 
   buildAPITest:
     runs-on: windows-latest
-    needs: [buildApplicationTests]
     permissions:
       contents: read
     
@@ -92,7 +91,6 @@ jobs:
 
   buildApplicationTests:
     runs-on: windows-latest
-    needs: [buildDomainTests]
     permissions:
       contents: read
     
@@ -125,7 +123,6 @@ jobs:
       
   buildAPI:
     runs-on: windows-latest
-    needs: [buildAPITest]
     permissions:
       contents: read
     
