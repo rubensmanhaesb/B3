@@ -87,7 +87,7 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Run Tests for B3.API Project
-        run: dotnet test APITests/APITests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+        run: dotnet test APITests/APITests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -120,7 +120,7 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Run Tests for B3.Application Project
-        run: dotnet test ApplicationTests/ApplicationTests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+        run: dotnet test ApplicationTests/ApplicationTests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -155,7 +155,7 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Run Tests with Coverage - Domain
-        run: dotnet test DomainTests/DomainTests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+        run: dotnet test DomainTests/DomainTests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
