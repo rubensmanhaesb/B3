@@ -27,7 +27,7 @@ namespace APITests
 
             var resultado = await response.Content.ReadFromJsonAsync<CdbResultDto>();
             resultado.Should().NotBeNull();
-            resultado!.ValorBruto.Should().BeGreaterThan(34);
+            resultado!.ValorBruto.Should().BeGreaterThan(request.ValorInicial);
             resultado.ValorLiquido.Should().BeLessThan(resultado.ValorBruto);
         }
 
