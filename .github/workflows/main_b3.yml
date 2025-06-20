@@ -87,7 +87,23 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Run Tests for B3.API Project
-        run: dotnet test APITests/APITests.csproj --configuration Release
+        run: dotnet test APITests/APITests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Verify Code Coverage >= 90%
+        run: |
+            reportgenerator "-reports:./TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" -reporttypes:HtmlInline_AzurePipelines
+            $coverage = Select-String -Path coverage-report/index.htm -Pattern "Line coverage.*?(\d+\.\d+)%"
+            $percent = [double]($coverage.Matches.Groups[1].Value)
+            if ($percent -lt 90) {
+                Write-Error "Code coverage is below 90%: $percent%"
+                exit 1
+            }
+        shell: pwsh
+
+
 
   buildApplicationTests:
     runs-on: windows-latest
@@ -102,8 +118,23 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Run Tests for B3.API Project
-        run: dotnet test ApplicationTests/ApplicationTests.csproj --configuration Release
+      - name: Run Tests for B3.Application Project
+        run: dotnet test ApplicationTests/ApplicationTests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Verify Code Coverage >= 90%
+        run: |
+            reportgenerator "-reports:./TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" -reporttypes:HtmlInline_AzurePipelines
+            $coverage = Select-String -Path coverage-report/index.htm -Pattern "Line coverage.*?(\d+\.\d+)%"
+            $percent = [double]($coverage.Matches.Groups[1].Value)
+            if ($percent -lt 90) {
+                Write-Error "Code coverage is below 90%: $percent%"
+                exit 1
+            }
+        shell: pwsh
+
 
   buildDomainTests:
     runs-on: windows-latest
@@ -118,9 +149,23 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Run Tests for B3.API Project
-        run: dotnet test DomainTests/DomainTests.csproj --configuration Release
-      
+      - name: Run Tests with Coverage - Domain
+        run: dotnet test DomainTests/DomainTests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Verify Code Coverage >= 90%
+        run: |
+            reportgenerator "-reports:./TestResults/**/coverage.cobertura.xml" "-targetdir:coverage-report" -reporttypes:HtmlInline_AzurePipelines
+            $coverage = Select-String -Path coverage-report/index.htm -Pattern "Line coverage.*?(\d+\.\d+)%"
+            $percent = [double]($coverage.Matches.Groups[1].Value)
+            if ($percent -lt 90) {
+                Write-Error "Code coverage is below 90%: $percent%"
+                exit 1
+            }
+        shell: pwsh
+     
   buildAPI:
     runs-on: windows-latest
     permissions:
