@@ -124,7 +124,6 @@ jobs:
       
   buildAPI:
     runs-on: windows-latest
-    needs: [buildAngular, buildAPITest, buildApplicationTests, buildDomainTests]
     permissions:
       contents: read
     
@@ -186,7 +185,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: [buildAPI, buildAngular]
+    needs: [buildAPI, buildAngular, buildAPITest, buildApplicationTests, buildDomainTests]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
