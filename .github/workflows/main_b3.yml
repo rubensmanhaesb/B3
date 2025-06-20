@@ -95,6 +95,13 @@ jobs:
                 /p:CoverletOutputFormat=cobertura `
                 /p:CoverletOutput=./TestResults/
 
+        - name: List TestResults folder contents
+          working-directory: APITests
+          run: |
+            Write-Host "📁 Conteúdo da pasta APITests após testes:"
+            Get-ChildItem -Recurse
+          shell: pwsh
+
         - name: Install ReportGenerator
           run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
