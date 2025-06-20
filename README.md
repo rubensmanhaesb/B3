@@ -29,6 +29,17 @@ A aplicação é 100% **containerizada com Docker**.
 - xUnit + Coverlet + coverlet.collector (para testes e cobertura)
 
 ################################################################################
+
+CI/CD e Publicação
+################################################################################
+
+O projeto conta com pipeline de **CI/CD** automatizado utilizando **GitHub Actions**, incluindo as etapas de build, testes, cobertura e deploy automatizado para o Azure App Service.
+
+A aplicação está publicada e disponível em ambiente de produção no seguinte endereço:
+
+🌐 https://b3.azurewebsites.net/
+
+################################################################################
 # Executando com Docker
 ################################################################################
 
