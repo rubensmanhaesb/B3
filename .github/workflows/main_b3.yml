@@ -177,6 +177,7 @@ jobs:
      
   buildAPI:
     runs-on: windows-latest
+    needs: [buildAngular]
     permissions:
       contents: read
     
