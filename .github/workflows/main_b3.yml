@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main 
+      - V1
   workflow_dispatch:
 
 jobs:
@@ -74,6 +75,16 @@ jobs:
 
       - name: Build .NET solution
         run: dotnet build B3.API/B3.API.sln --configuration Release
+
+      - name: Run tests
+        run: dotnet test B3.API/B3.API.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
 
       - name: Publish .NET application
         shell: pwsh
