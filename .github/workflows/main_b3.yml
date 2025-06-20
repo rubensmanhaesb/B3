@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - B3
+﻿name: Build and deploy ASP.Net Core app to Azure Web App - B3
 
 on:
   push:
@@ -78,33 +78,38 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read
-    
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
 
       - name: Run Tests for B3.API Project
-        run: dotnet test APITests/APITests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
+        working-directory: APITests
+        run: dotnet test APITests.csproj --configuration Release `
+              /p:CollectCoverage=true `
+              /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput=./TestResults/
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
       - name: Verify Code Coverage >= 90%
+        working-directory: APITests
         run: |
-            [xml]$xml = Get-Content "APITests/TestResults/coverage.cobertura.xml"
-            $lineCoverage = $xml.coverage.'@line-rate'
-            $percent = [math]::Round([double]$lineCoverage * 100, 2)
+          [xml]$xml = Get-Content "./TestResults/coverage.cobertura.xml"
+          $lineCoverage = $xml.coverage.'@line-rate'
+          $percent = [math]::Round([double]$lineCoverage * 100, 2)
 
-            Write-Host "?? Code coverage: $percent%"
+          Write-Host "🔍 Code coverage: $percent%"
 
-            if ($percent -lt 90) {
-                Write-Error "? Code coverage is below 90%: $percent%"
-                exit 1
-            }
-
+          if ($percent -lt 90) {
+              Write-Error "❌ Code coverage is below 90%: $percent%"
+              exit 1
+          }
         shell: pwsh
 
   buildApplicationTests:
