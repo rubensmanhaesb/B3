@@ -8,21 +8,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  buildAngular:
     runs-on: windows-latest
     permissions:
       contents: read
     
-    env:
-      PUBLISH_DIR: ${{ github.workspace }}\publish
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.x'
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -72,35 +64,21 @@ jobs:
               Write-Error "Copied index.html is empty!"
               exit 1
           }
+  
+  buildAPI:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}\publish
+
+    steps:
+      - uses: actions/checkout@v4
+
 
       - name: Build .NET solution
         run: dotnet build B3.API/B3.API.sln --configuration Release
-
-
-      - name: Run tests
-        run: dotnet test B3.API/B3.API.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/TestResults/*.trx'
-
-      - name: Report Test Results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Unit Tests
-          path: '**/TestResults/*.trx'
-          reporter: dotnet-trx
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/TestResults/*.trx'
 
       - name: Publish .NET application
         shell: pwsh
@@ -137,6 +115,40 @@ jobs:
         with:
           name: .net-app
           path: ${{ env.PUBLISH_DIR }}
+
+  testAPI:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: dotnet test B3.API/B3.API.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+
+      - name: Report Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit Tests
+          path: '**/TestResults/*.trx'
+          reporter: dotnet-trx
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
+
 
   deploy:
     runs-on: windows-latest
