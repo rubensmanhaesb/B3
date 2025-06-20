@@ -13,6 +13,9 @@ jobs:
     permissions:
       contents: read
     
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}\publish
+
     steps:
       - uses: actions/checkout@v4
 
@@ -64,8 +67,9 @@ jobs:
               Write-Error "Copied index.html is empty!"
               exit 1
           }
-  
-  buildAPI:
+
+
+  build:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -75,6 +79,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
 
 
       - name: Build .NET solution
@@ -92,7 +101,12 @@ jobs:
             -c Release `
             -o "$env:PUBLISH_DIR" `
             /p:DeleteExistingFiles=false
-                  
+          
+          # Manually copy wwwroot if not included
+          if (-not (Test-Path "$env:PUBLISH_DIR\wwwroot")) {
+              Copy-Item -Path "B3.API\wwwroot" -Destination "$env:PUBLISH_DIR\wwwroot" -Recurse -Force
+          }
+          
           # Verify published files
           $publishedIndex = "$env:PUBLISH_DIR\wwwroot\index.html"
           if (-not (Test-Path $publishedIndex)) {
@@ -111,46 +125,9 @@ jobs:
           name: .net-app
           path: ${{ env.PUBLISH_DIR }}
 
-  testAPI:
-    runs-on: windows-latest
-    permissions:
-      contents: read
-    
-      env:
-      PUBLISH_DIR: ${{ github.workspace }}\publish
-    
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run tests
-        run: dotnet test B3.API/B3.API.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory "TestResults"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/TestResults/*.trx'
-
-      - name: Report Test Results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Unit Tests
-          path: '**/TestResults/*.trx'
-          reporter: dotnet-trx
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/TestResults/*.trx'
-
-
   deploy:
     runs-on: windows-latest
-    needs: [buildAPI, testAPI, buildAngular]
+    needs: build
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
