@@ -6,7 +6,7 @@ namespace DomainTests
     public class TabelaImpostoServiceTests
     {
         [Theory]
-        [InlineData(3, 0.226)]
+        [InlineData(3, 0.225)]
         [InlineData(6, 0.225)]
         [InlineData(9, 0.20)]
         [InlineData(15, 0.175)]
