@@ -74,9 +74,7 @@ jobs:
           name: wwwroot
           path: B3.API/wwwroot
 
-
-
-  build:
+  buildAPI:
     runs-on: windows-latest
     needs: buildAngular
     permissions:
@@ -140,7 +138,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: build
+    needs: [buildAPI, buildAngular]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
