@@ -100,7 +100,13 @@ jobs:
         - name: Verify Code Coverage >= 90%
           working-directory: APITests
           run: |
-            [xml]$xml = Get-Content "./TestResults/coverage.cobertura.xml"
+            $coveragePath = Join-Path $PWD "TestResults/coverage.cobertura.xml"
+            if (-not (Test-Path $coveragePath)) {
+              Write-Error "❌ coverage.cobertura.xml not found at $coveragePath"
+              exit 1
+            }
+
+            [xml]$xml = Get-Content $coveragePath
             $lineCoverage = $xml.coverage.'@line-rate'
             $percent = [math]::Round([double]$lineCoverage * 100, 2)
 
