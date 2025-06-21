@@ -12,7 +12,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: read
-    
+
     env:
       PUBLISH_DIR: ${{ github.workspace }}\publish
 
@@ -56,7 +56,7 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item -Path "cdbWeb\dist\cdb-web\browser\*" -Destination "B3.API\wwwroot" -Recurse -Force
-          
+
           # Verify copy
           $indexDest = "B3.API\wwwroot\index.html"
           if (-not (Test-Path $indexDest)) {
@@ -79,7 +79,7 @@ jobs:
     needs: [buildAngular]
     permissions:
       contents: read
-    
+
     env:
       PUBLISH_DIR: ${{ github.workspace }}\publish
 
@@ -100,7 +100,7 @@ jobs:
       - name: Generate Coverage Report
         shell: pwsh
         run: |
-          reportgenerator -reports:"**/TestResults/**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+          reportgenerator -reports:"**/TestResults/**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html;JsonSummary
           if (-not (Test-Path "coveragereport/index.html")) {
             Write-Error "Coverage report generation failed!"
             exit 1
@@ -112,32 +112,26 @@ jobs:
             name: coverage-report
             path: coveragereport
 
-
-      - name: Old Verify Code Coverage >= 90% old
+      - name: Verify Code Coverage >= 90%
         shell: pwsh
         run: |
-            $coverageFile = Get-ChildItem -Path "." -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
-            if (-not $coverageFile) {
-              Write-Error "❌ No coverage.cobertura.xml file found!"
-              exit 1
-            }
-            [xml]$xml = Get-Content $coverageFile.FullName
-            $lineCoverage = $xml.coverage.'line-rate'
-            $totalLines = $xml.coverage.'@lines-valid'
+          $jsonPath = "coveragereport/Summary.json"
+          if (-not (Test-Path $jsonPath)) {
+            Write-Error "❌ Summary.json not found!"
+            exit 1
+          }
 
-            if (-not $lineCoverage) {
-              Write-Error "❌ Could not read line-rate from XML!"
-              exit 1
-            }
-            $percent = [math]::Round([double]$lineCoverage * 100, 2)
-            
-            Write-Host "📊 Cobertura da branch: $percent%"
-            Write-Host "✅ Linhas cobertas: $coveredLines / $totalLines"
+          $summary = Get-Content $jsonPath | ConvertFrom-Json
+          $percent = [math]::Round($summary.coverage.lineCoverage, 2)
+          $covered = $summary.coverage.lineCoverageAbs
+          $total = $summary.coverage.lineTotal
 
-            if ($percent -lt 90) {
-              Write-Error "❌ Code coverage is below 90%: $percent%"
-              exit 1
-            }
+          Write-Host "📊 Cobertura da branch: $percent% ($covered de $total linhas)"
+
+          if ($percent -lt 90) {
+            Write-Error "❌ Code coverage is below 90%: $percent%"
+            exit 1
+          }
 
       - name: Build .NET solution
         run: dotnet build B3.API/B3.API.sln --configuration Release
@@ -151,22 +145,18 @@ jobs:
       - name: Publish .NET application
         shell: pwsh
         run: |
-          # Ensure publish directory exists and is empty
           Remove-Item -Recurse -Force "$env:PUBLISH_DIR" -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path "$env:PUBLISH_DIR" -Force
-          
-          # Publish with wwwroot preservation
+
           dotnet publish B3.API/B3.API/B3.API.csproj `
             -c Release `
             -o "$env:PUBLISH_DIR" `
             /p:DeleteExistingFiles=false
-          
-          # Manually copy wwwroot if not included
+
           if (-not (Test-Path "$env:PUBLISH_DIR\wwwroot")) {
               Copy-Item -Path "B3.API\wwwroot" -Destination "$env:PUBLISH_DIR\wwwroot" -Recurse -Force
           }
-          
-          # Verify published files
+
           $publishedIndex = "$env:PUBLISH_DIR\wwwroot\index.html"
           if (-not (Test-Path $publishedIndex)) {
               Write-Error "index.html missing in published output!"
@@ -193,7 +183,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    
+
     env:
       PUBLISH_DIR: ${{ github.workspace }}\publish
 
