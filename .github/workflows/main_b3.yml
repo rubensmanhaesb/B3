@@ -100,7 +100,7 @@ jobs:
       - name: Generate Coverage Report
         shell: pwsh
         run: |
-          reportgenerator -reports:"**/TestResults/**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html;JsonSummary
+          reportgenerator -reports:"**/TestResults/**/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html;Json
           if (-not (Test-Path "coveragereport/index.html")) {
             Write-Error "Coverage report generation failed!"
             exit 1
