@@ -109,19 +109,19 @@ jobs:
       - name: Verify Code Coverage >= 90%
         shell: pwsh
         run: |
-          $coverageFile = Get-ChildItem -Path "./TestResults" -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
-          if (-not $coverageFile) {
-            Write-Error "❌ No coverage.cobertura.xml file found!"
-            exit 1
-          }
-          [xml]$xml = Get-Content $coverageFile.FullName
-          $lineCoverage = $xml.coverage.'@line-rate'
-          $percent = [math]::Round([double]$lineCoverage * 100, 2)
-          Write-Host "📊 Cobertura da branch: $percent%"
-          if ($percent -lt 90) {
-            Write-Error "❌ Code coverage is below 90%: $percent%"
-            exit 1
-          }
+            $coverageFile = Get-ChildItem -Path "." -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+            if (-not $coverageFile) {
+              Write-Error "❌ No coverage.cobertura.xml file found!"
+              exit 1
+            }
+            [xml]$xml = Get-Content $coverageFile.FullName
+            $lineCoverage = $xml.coverage.'@line-rate'
+            $percent = [math]::Round([double]$lineCoverage * 100, 2)
+            Write-Host "📊 Cobertura da branch: $percent%"
+            if ($percent -lt 90) {
+              Write-Error "❌ Code coverage is below 90%: $percent%"
+              exit 1
+            }
 
       - name: Build .NET solution
         run: dotnet build B3.API/B3.API.sln --configuration Release
