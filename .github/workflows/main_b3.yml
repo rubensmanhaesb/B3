@@ -103,13 +103,9 @@ jobs:
         shell: pwsh
         working-directory: B3.API/B3.API
         run: |
-            # Instala nos projetos de teste especificamente
-            dotnet add APITests/APITests.csproj package coverlet.collector --version 6.0.0
-            dotnet add APITests/APITests.csproj package coverlet.msbuild --version 6.0.0
-            dotnet add ApplicationTests/ApplicationTests.csproj package coverlet.collector --version 6.0.0
-            dotnet add ApplicationTests/ApplicationTests.csproj package coverlet.msbuild --version 6.0.0
-            dotnet add DomainTests/DomainTests.csproj package coverlet.collector --version 6.0.0
-            dotnet add DomainTests/DomainTests.csproj package coverlet.msbuild --version 6.0.0
+            dotnet add package coverlet.collector --version 6.0.0
+            dotnet add package coverlet.msbuild --version 6.0.0
+
 
       - name: Create TestResults Directory
         shell: pwsh
