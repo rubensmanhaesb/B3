@@ -144,6 +144,18 @@ jobs:
       - name: Run Tests for B3.Application Project
         run: dotnet test ApplicationTests/ApplicationTests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
 
+      - name: List files after tests
+        shell: pwsh
+        run: |
+            Write-Host "📁 Current directory structure:"
+            Get-ChildItem -Recurse
+
+      - name: List files after tests
+        shell: pwsh
+        run: |
+            Write-Host "📁 Current directory structure:"
+            Get-ChildItem -Recurse
+
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
@@ -179,6 +191,12 @@ jobs:
 
       - name: Run Tests with Coverage - Domain
         run: dotnet test DomainTests/DomainTests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/
+
+      - name: List files after tests
+        shell: pwsh
+        run: |
+            Write-Host "📁 Current directory structure:"
+            Get-ChildItem -Recurse
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
