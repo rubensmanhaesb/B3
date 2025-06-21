@@ -261,6 +261,27 @@ jobs:
             Write-Host "✅ Created fresh TestResults directory"
           shell: pwsh
 
+        - name: Create coverlet.runsettings file
+          working-directory: DomainTests
+          run: |
+            @"
+            <?xml version="1.0" encoding="utf-8" ?>
+            <RunSettings>
+              <DataCollectionRunSettings>
+                <DataCollectors>
+                  <DataCollector friendlyName="XPlat code coverage">
+                    <Configuration>
+                      <Format>cobertura</Format>
+                      <Include>[B3.Domain]*</Include>
+                    </Configuration>
+                  </DataCollector>
+                </DataCollectors>
+              </DataCollectionRunSettings>
+            </RunSettings>
+            "@ | Out-File -FilePath "coverlet.runsettings" -Encoding utf8
+            Write-Host "✅ Created coverlet.runsettings file"
+          shell: pwsh
+
         - name: Run Tests with Coverage - Domain
           working-directory: DomainTests
           run: |
