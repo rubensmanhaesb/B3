@@ -101,7 +101,7 @@ jobs:
 
       - name: Install Coverlet Packages
         shell: pwsh
-        working-directory: B3.API
+        working-directory: B3.API/B3.API
         run: |
             dotnet add package coverlet.collector --version 6.0.0
             dotnet add package coverlet.msbuild --version 6.0.0
