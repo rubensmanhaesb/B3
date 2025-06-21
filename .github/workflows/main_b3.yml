@@ -75,86 +75,87 @@ jobs:
           path: B3.API/wwwroot
 
   buildAPITest:
-    runs-on: windows-latest
-    needs: [buildAPI]
-    permissions:
-      contents: read
+      runs-on: windows-latest
+      needs: [buildAPI]
+      permissions:
+        contents: read
 
-    steps:
-      - uses: actions/checkout@v4
+      steps:
+        - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.x'
+        - name: Set up .NET Core
+          uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: '9.x'
 
-      - name: Create TestResults directory
-        working-directory: APITests
-        run: |
-          New-Item -ItemType Directory -Path "./TestResults" -Force
-          Write-Host "✅ Created TestResults directory at $(Get-Location)/TestResults"
-        shell: pwsh
+        - name: Create TestResults directory
+          working-directory: APITests
+          run: |
+            New-Item -ItemType Directory -Path "./TestResults" -Force
+            Write-Host "✅ Created TestResults directory"
+          shell: pwsh
 
-      - name: Run Tests for B3.API Project
-        working-directory: APITests
-        run: |
+        - name: Run Tests with Coverage
+          working-directory: APITests
+          run: |
             dotnet test --configuration Release `
               /p:CollectCoverage=true `
               /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
-              /p:MergeWith="../TestResults/coverage.cobertura.xml" `
-              /p:MergeOutputFormat=cobertura
+              /p:CoverletOutput="./TestResults/coverage.cobertura.xml"
 
-      - name: Verify TestResults directory exists
-        working-directory: APITests
-        run: |
-          if (-not (Test-Path "./TestResults")) {
-            Write-Error "❌ TestResults directory not found!"
-            exit 1
-          }
-          Write-Host "✅ TestResults directory exists"
-        shell: pwsh
+        - name: Find and Verify Coverage File
+          working-directory: APITests
+          run: |
+            # Find the coverage file in any subdirectory
+            $coverageFile = Get-ChildItem -Path "./TestResults" -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+        
+            if (-not $coverageFile) {
+              Write-Error "❌ No coverage.cobertura.xml file found in TestResults!"
+              Get-ChildItem -Path "./TestResults" -Recurse
+              exit 1
+            }
+        
+            Write-Host "✅ Found coverage file at: $($coverageFile.FullName)"
+        
+            # Copy to root TestResults for easier access
+            Copy-Item -Path $coverageFile.FullName -Destination "./TestResults/coverage.cobertura.xml" -Force
+        
+            # Verify the copied file
+            if (-not (Test-Path "./TestResults/coverage.cobertura.xml")) {
+              Write-Error "❌ Failed to copy coverage file to root TestResults!"
+              exit 1
+            }
+          shell: pwsh
 
-      - name: List TestResults contents
-        working-directory: APITests
-        run: |
-          Write-Host "📂 Contents of TestResults:"
-          Get-ChildItem -Path "./TestResults" -Recurse
-          if (-not (Test-Path "./TestResults/coverage.cobertura.xml")) {
-            Write-Error "❌ coverage.cobertura.xml not found!"
-            exit 1
-          }
-        shell: pwsh
+        - name: Install ReportGenerator
+          run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+        - name: Verify Code Coverage >= 90%
+          working-directory: APITests
+          run: |
+            $coveragePath = "./TestResults/coverage.cobertura.xml"
+            if (-not (Test-Path $coveragePath)) {
+              Write-Error "❌ Coverage file not found at $coveragePath"
+              exit 1
+            }
+        
+            [xml]$xml = Get-Content $coveragePath
+            $lineCoverage = $xml.coverage.'@line-rate'
+            $percent = [math]::Round([double]$lineCoverage * 100, 2)
+        
+            Write-Host "🔍 Code coverage: $percent%"
+        
+            if ($percent -lt 90) {
+              Write-Error "❌ Code coverage is below 90%: $percent%"
+              exit 1
+            }
+          shell: pwsh
 
-      - name: Verify Code Coverage >= 90%
-        working-directory: APITests
-        run: |
-          $coveragePath = "./TestResults/coverage.cobertura.xml"
-          if (-not (Test-Path $coveragePath)) {
-            Write-Error "❌ Coverage file not found at $coveragePath"
-            exit 1
-          }
-          
-          [xml]$xml = Get-Content $coveragePath
-          $lineCoverage = $xml.coverage.'@line-rate'
-          $percent = [math]::Round([double]$lineCoverage * 100, 2)
-          
-          Write-Host "🔍 Code coverage: $percent%"
-          
-          if ($percent -lt 90) {
-            Write-Error "❌ Code coverage is below 90%: $percent%"
-            exit 1
-          }
-        shell: pwsh
-
-      - name: Upload TestResults artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: APITestResults
-          path: APITests/TestResults
+        - name: Upload TestResults artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: APITestResults
+            path: APITests/TestResults
 
   buildApplicationTests:
     runs-on: windows-latest
