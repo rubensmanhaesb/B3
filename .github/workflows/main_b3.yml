@@ -91,12 +91,21 @@ jobs:
         with: 
           dotnet-version: '9.x'
 
+
+      - name: Clean old TestResults
+        shell: pwsh
+        run: |
+            if (Test-Path "TestResults") {
+                Remove-Item -Recurse -Force "TestResults"
+            }
+
       - name: Run Tests and Collect Coverage
         run: dotnet test B3.API/B3.API.sln `
             --results-directory ./TestResults `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=coverage.cobertura.xml
+            /p:CoverletOutput=./TestResults/coverage
+
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
