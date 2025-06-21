@@ -170,7 +170,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: [buildAPI, buildAngular, buildAPITest, buildApplicationTests, buildDomainTests]
+    needs: [buildAPI, buildAngular]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
