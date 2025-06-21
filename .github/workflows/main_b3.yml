@@ -240,87 +240,89 @@ jobs:
           path: ApplicationTests/TestResults
 
   buildDomainTests:
-    runs-on: windows-latest
-    needs: [buildAPI]
-    permissions:
-      contents: read
-    
-    steps:
-      - uses: actions/checkout@v4
+      runs-on: windows-latest
+      needs: [buildAPI]
+      permissions:
+        contents: read
+  
+      steps:
+        - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.x'
+        - name: Set up .NET Core
+          uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: '9.x'
 
-      - name: Create TestResults directory
-        working-directory: DomainTests
-        run: |
-          New-Item -ItemType Directory -Path "./TestResults" -Force
-          Write-Host "✅ Created TestResults directory at $(Get-Location)/TestResults"
-        shell: pwsh
+        - name: Create TestResults directory
+          working-directory: DomainTests
+          run: |
+            Remove-Item -Recurse -Force "./TestResults" -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Path "./TestResults" -Force
+            Write-Host "✅ Created fresh TestResults directory"
+          shell: pwsh
 
-      - name: Run Tests with Coverage - Domain
-        working-directory: DomainTests
-        run: |
+        - name: Run Tests with Coverage - Domain
+          working-directory: DomainTests
+          run: |
             dotnet test --configuration Release `
               /p:CollectCoverage=true `
               /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
-              /p:MergeWith="../TestResults/coverage.cobertura.xml" `
-              /p:MergeOutputFormat=cobertura
+              /p:CoverletOutput="./TestResults/coverage.cobertura.xml"
 
+        - name: Find and Move Coverage File
+          working-directory: DomainTests
+          run: |
+            # Find the coverage file in any subdirectory
+            $coverageFile = Get-ChildItem -Path "./TestResults" -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+        
+            if (-not $coverageFile) {
+              Write-Error "❌ No coverage.cobertura.xml file found in TestResults!"
+              Write-Host "Contents of TestResults:"
+              Get-ChildItem -Path "./TestResults" -Recurse
+              exit 1
+            }
+        
+            Write-Host "✅ Found coverage file at: $($coverageFile.FullName)"
+        
+            # Move it to the root TestResults directory
+            Move-Item -Path $coverageFile.FullName -Destination "./TestResults/coverage.cobertura.xml" -Force
+        
+            # Verify the moved file
+            if (-not (Test-Path "./TestResults/coverage.cobertura.xml")) {
+              Write-Error "❌ Failed to move coverage file to root TestResults!"
+              exit 1
+            }
+          shell: pwsh
 
-      - name: Verify TestResults directory exists
-        working-directory: DomainTests
-        run: |
-          if (-not (Test-Path "./TestResults")) {
-            Write-Error "❌ TestResults directory not found!"
-            exit 1
-          }
-          Write-Host "✅ TestResults directory exists"
-        shell: pwsh
+        - name: Install ReportGenerator
+          run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: List TestResults contents
-        working-directory: DomainTests
-        run: |
-          Write-Host "📂 Contents of TestResults:"
-          Get-ChildItem -Path "./TestResults" -Recurse
-          if (-not (Test-Path "./TestResults/coverage.cobertura.xml")) {
-            Write-Error "❌ coverage.cobertura.xml not found!"
-            exit 1
-          }
-        shell: pwsh
+        - name: Verify Code Coverage >= 90%
+          working-directory: DomainTests
+          run: |
+            $coveragePath = "./TestResults/coverage.cobertura.xml"
+            if (-not (Test-Path $coveragePath)) {
+              Write-Error "❌ Coverage file not found at $coveragePath"
+              exit 1
+            }
+        
+            [xml]$xml = Get-Content $coveragePath
+            $lineCoverage = $xml.coverage.'@line-rate'
+            $percent = [math]::Round([double]$lineCoverage * 100, 2)
+        
+            Write-Host "🔍 Code coverage: $percent%"
+        
+            if ($percent -lt 90) {
+              Write-Error "❌ Code coverage is below 90%: $percent%"
+              exit 1
+            }
+          shell: pwsh
 
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Verify Code Coverage >= 90%
-        working-directory: DomainTests
-        run: |
-          $coveragePath = "./TestResults/coverage.cobertura.xml"
-          if (-not (Test-Path $coveragePath)) {
-            Write-Error "❌ Coverage file not found at $coveragePath"
-            exit 1
-          }
-          
-          [xml]$xml = Get-Content $coveragePath
-          $lineCoverage = $xml.coverage.'@line-rate'
-          $percent = [math]::Round([double]$lineCoverage * 100, 2)
-          
-          Write-Host "🔍 Code coverage: $percent%"
-          
-          if ($percent -lt 90) {
-            Write-Error "❌ Code coverage is below 90%: $percent%"
-            exit 1
-          }
-        shell: pwsh
-
-      - name: Upload TestResults artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: DomainTestResults
-          path: DomainTests/TestResults
+        - name: Upload TestResults artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: DomainTestResults
+            path: DomainTests/TestResults
      
   buildAPI:
     runs-on: windows-latest
