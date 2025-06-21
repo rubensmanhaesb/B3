@@ -98,11 +98,12 @@ jobs:
       - name: Run Tests for B3.API Project
         working-directory: APITests
         run: |
-          dotnet test APITests.csproj --configuration Release `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput="./TestResults/coverage.cobertura.xml" `
-            /p:MergeWith="./TestResults/coverage.cobertura.xml"
+            dotnet test --configuration Release `
+              /p:CollectCoverage=true `
+              /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
+              /p:MergeWith="../TestResults/coverage.cobertura.xml" `
+              /p:MergeOutputFormat=cobertura
 
       - name: Verify TestResults directory exists
         working-directory: APITests
@@ -179,11 +180,13 @@ jobs:
       - name: Run Tests for B3.Application Project
         working-directory: ApplicationTests
         run: |
-          dotnet test ApplicationTests.csproj --configuration Release `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput="./TestResults/coverage.cobertura.xml" `
-            /p:MergeWith="./TestResults/coverage.cobertura.xml"
+            dotnet test --configuration Release `
+              /p:CollectCoverage=true `
+              /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
+              /p:MergeWith="../TestResults/coverage.cobertura.xml" `
+              /p:MergeOutputFormat=cobertura
+
 
       - name: Verify TestResults directory exists
         working-directory: ApplicationTests
@@ -260,11 +263,13 @@ jobs:
       - name: Run Tests with Coverage - Domain
         working-directory: DomainTests
         run: |
-          dotnet test DomainTests.csproj --configuration Release `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput="./TestResults/coverage.cobertura.xml" `
-            /p:MergeWith="./TestResults/coverage.cobertura.xml"
+            dotnet test --configuration Release `
+              /p:CollectCoverage=true `
+              /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
+              /p:MergeWith="../TestResults/coverage.cobertura.xml" `
+              /p:MergeOutputFormat=cobertura
+
 
       - name: Verify TestResults directory exists
         working-directory: DomainTests
