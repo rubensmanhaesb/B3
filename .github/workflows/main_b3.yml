@@ -126,9 +126,18 @@ jobs:
               /p:Exclude="[xunit.*]*%2c[B3.API.Migrations]*"
 
 
-              $coverageFiles = Get-ChildItem -Path "TestResults" -Recurse -Filter "coverage.cobertura.xml"
+              $coverageFiles = Get-ChildItem -Path "TestResults" -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+ 
+              Copy-Item $coverageFile.FullName -Destination "TestResults/coverage.cobertura.xml" -Force
+
               if ($coverageFiles.Count -eq 0) {
                   Write-Host "##[error] Nenhum arquivo de cobertura encontrado!"
+                  Get-ChildItem -Path "TestResults" -Recurse
+                  exit 1
+              }
+
+              if (-not $coverageFile) {
+                  Write-Error "❌ Arquivo de cobertura não encontrado!"
                   Get-ChildItem -Path "TestResults" -Recurse
                   exit 1
               }
