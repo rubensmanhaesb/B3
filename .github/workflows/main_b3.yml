@@ -289,9 +289,6 @@ jobs:
           working-directory: DomainTests
           run: |
             dotnet test --configuration Release `
-              --collect:"XPlat Code Coverage" `
-              --settings coverlet.runsettings `
-              --results-directory ./TestResults
               /p:CollectCoverage=true `
               /p:CoverletOutputFormat=cobertura `
               /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
