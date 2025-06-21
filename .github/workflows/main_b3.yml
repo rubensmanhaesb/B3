@@ -106,20 +106,36 @@ jobs:
             /p:CoverletOutputFormat=cobertura `
             /p:CoverletOutput=./TestResults/coverage.cobertura.xml `
 
-
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Debug TestResults
+        shell: pwsh
+        run: |
+            Get-ChildItem -Path "TestResults" -Recurse
+            if (Test-Path "TestResults/coverage.cobertura.xml") {
+                Write-Host "✅ Arquivo de cobertura encontrado!"
+            }
 
       - name: Generate Coverage Report
         shell: pwsh
         run: |
-          reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
 
-          if (-not (Test-Path "coveragereport/index.html")) {
-            Write-Error "Coverage report generation failed!"
-            exit 1
-          }
+          # Verifica se o arquivo de cobertura foi gerado
+            if (-not (Test-Path "TestResults/coverage.cobertura.xml")) {
+                Write-Error "❌ Arquivo de cobertura não encontrado em TestResults/coverage.cobertura.xml"
+                Get-ChildItem -Path "TestResults" -Recurse  # Debug: lista os arquivos existentes
+                exit 1
+            }
 
+            # Gera o relatório HTML
+            reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+
+            # Verifica se o relatório foi criado
+            if (-not (Test-Path "coveragereport/index.html")) {
+                Write-Error "❌ Falha ao gerar o relatório HTML"
+                exit 1
+            }
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
