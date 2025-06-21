@@ -103,8 +103,13 @@ jobs:
         shell: pwsh
         working-directory: B3.API/B3.API
         run: |
-            dotnet add package coverlet.collector --version 6.0.0
-            dotnet add package coverlet.msbuild --version 6.0.0
+            # Instala nos projetos de teste especificamente
+            dotnet add .\APITests\APITests.csproj package coverlet.collector --version 6.0.0
+            dotnet add .\APITests\APITests.csproj package coverlet.msbuild --version 6.0.0
+            dotnet add .\ApplicationTests\ApplicationTests.csproj package coverlet.collector --version 6.0.0
+            dotnet add .\ApplicationTests\ApplicationTests.csproj package coverlet.msbuild --version 6.0.0
+            dotnet add .\DomainTests\DomainTests.csproj package coverlet.collector --version 6.0.0
+            dotnet add .\DomainTests\DomainTests.csproj package coverlet.msbuild --version 6.0.0
 
       - name: Create TestResults Directory
         shell: pwsh
@@ -112,19 +117,38 @@ jobs:
 
       - name: Run Tests and Collect Coverage
         run: 
+            # Comando simplificado e mais robusto
             dotnet test B3.API/B3.API.sln `
-              --logger "trx;LogFileName=testresults.trx" `
-              --results-directory ./TestResults `
+              --configuration Debug `
+              --logger trx `
+              --results-directory TestResults `
+              --collect:"XPlat Code Coverage" `
               /p:CollectCoverage=true `
               /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput=./TestResults/coverage.cobertura.xml `
-              /p:MergeWith='./TestResults/coverage.cobertura.xml'
-    
+              /p:CoverletOutput=TestResults/coverage.cobertura.xml `
+              /p:Exclude="[xunit.*]*%2c[B3.API.Migrations]*"
+
             if (-not (Test-Path "TestResults/coverage.cobertura.xml")) {
-                    Write-Host "##[error] Arquivo de cobertura não gerado!"
-                    Get-ChildItem -Path "TestResults" -Recurse
-                    exit 1
-                }
+                Write-Host "##[error] Arquivo de cobertura não gerado!"
+                Write-Host "##[group] Conteúdo do diretório TestResults"
+                Get-ChildItem -Path "TestResults" -Recurse
+                Write-Host "##[endgroup]"
+                exit 1
+            }
+
+      - name: Show Test Results
+        shell: pwsh
+        run: |
+            $trxFile = Get-ChildItem -Path "TestResults" -Filter "*.trx" | Select-Object -First 1
+            if ($trxFile) {
+            Write-Host "##[group] Test Results Summary"
+            [xml]$xml = Get-Content $trxFile.FullName
+            $total = $xml.TestRun.ResultSummary.Counters.total
+            $passed = $xml.TestRun.ResultSummary.Counters.passed
+            $failed = $xml.TestRun.ResultSummary.Counters.failed
+            Write-Host "✅ $passed passed, ❌ $failed failed, 📊 $total total"
+            Write-Host "##[endgroup]"
+            }
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
