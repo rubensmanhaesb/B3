@@ -320,9 +320,13 @@ jobs:
         
             [xml]$xml = Get-Content $coveragePath
             $lineCoverage = $xml.coverage.'@line-rate'
-            $percent = [math]::Round([double]$lineCoverage * 100, 2)
+            $branchCoverage = $xml.coverage.'@branch-rate'
+            $linePercent = [math]::Round([double]$lineCoverage * 100, 2)
+            $branchPercent = [math]::Round([double]$branchCoverage * 100, 2)
+
+            Write-Host "🔍 Line coverage: $linePercent%"
+            Write-Host "🔍 Branch coverage: $branchPercent%"
         
-            Write-Host "🔍 Code coverage: $percent%"
         
             if ($percent -lt 90) {
               Write-Error "❌ Code coverage is below 90%: $percent%"
