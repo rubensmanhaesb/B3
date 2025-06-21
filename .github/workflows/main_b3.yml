@@ -265,33 +265,24 @@ jobs:
           working-directory: DomainTests
           run: |
             dotnet test --configuration Release `
-              /p:CollectCoverage=true `
-              /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput="./TestResults/coverage.cobertura.xml"
+              --collect:"XPlat Code Coverage" `
+              --settings coverlet.runsettings `
+              --results-directory ./TestResults
 
-        - name: Find and Move Coverage File
+        - name: Verify coverage file exists
           working-directory: DomainTests
           run: |
-            # Find the coverage file in any subdirectory
             $coverageFile = Get-ChildItem -Path "./TestResults" -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
-        
             if (-not $coverageFile) {
-              Write-Error "❌ No coverage.cobertura.xml file found in TestResults!"
               Write-Host "Contents of TestResults:"
               Get-ChildItem -Path "./TestResults" -Recurse
+              Write-Error "❌ No coverage.cobertura.xml file found in TestResults!"
               exit 1
             }
-        
             Write-Host "✅ Found coverage file at: $($coverageFile.FullName)"
         
-            # Move it to the root TestResults directory
-            Move-Item -Path $coverageFile.FullName -Destination "./TestResults/coverage.cobertura.xml" -Force
-        
-            # Verify the moved file
-            if (-not (Test-Path "./TestResults/coverage.cobertura.xml")) {
-              Write-Error "❌ Failed to move coverage file to root TestResults!"
-              exit 1
-            }
+            # Copy to root of TestResults for consistency
+            Copy-Item -Path $coverageFile.FullName -Destination "./TestResults/coverage.cobertura.xml" -Force
           shell: pwsh
 
         - name: Install ReportGenerator
