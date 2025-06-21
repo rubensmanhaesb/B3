@@ -121,7 +121,10 @@ jobs:
               exit 1
             }
             [xml]$xml = Get-Content $coverageFile.FullName
-            $lineCoverage = $xml.coverage.'@line-rate'
+            $lineCoverage = $xml.coverage.'line-rate'
+            if (-not $lineCoverage) {
+              $lineCoverage = $xml.coverage.'@line-rate' # fallback
+            }
             $percent = [math]::Round([double]$lineCoverage * 100, 2)
             Write-Host "📊 Cobertura da branch: $percent%"
             if ($percent -lt 90) {
