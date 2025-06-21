@@ -104,7 +104,7 @@ jobs:
             --results-directory ./TestResults `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=./TestResults/coverage
+            /p:CoverletOutput=./TestResults/coverage.cobertura.xml `
 
 
       - name: Install ReportGenerator
@@ -113,11 +113,11 @@ jobs:
       - name: Generate Coverage Report
         shell: pwsh
         run: |
-          reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
           if (-not (Test-Path "coveragereport/index.html")) {
             Write-Error "Coverage report generation failed!"
             exit 1
           }
+          reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
