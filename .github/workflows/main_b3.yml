@@ -280,6 +280,9 @@ jobs:
             </RunSettings>
             "@ | Out-File -FilePath "coverlet.runsettings" -Encoding utf8
             Write-Host "✅ Created coverlet.runsettings file"
+
+            New-Item -ItemType Directory -Path "./TestResults" -Force
+            Write-Host "✅ Created TestResults directory at $(Get-Location)/TestResults"
           shell: pwsh
 
         - name: Run Tests with Coverage - Domain
@@ -289,6 +292,22 @@ jobs:
               --collect:"XPlat Code Coverage" `
               --settings coverlet.runsettings `
               --results-directory ./TestResults
+              /p:CollectCoverage=true `
+              /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput="../TestResults/coverage.cobertura.xml" `
+              /p:MergeWith="../TestResults/coverage.cobertura.xml" `
+              /p:MergeOutputFormat=cobertura
+
+        - name: Verify TestResults directory exists
+          working-directory: DomainTests
+          run: |
+              if (-not (Test-Path "./TestResults")) {
+                Write-Error "❌ TestResults directory not found!"
+                exit 1
+              }
+              Write-Host "✅ TestResults directory exists"
+          shell: pwsh
+
 
         - name: Verify coverage file exists
           working-directory: DomainTests
