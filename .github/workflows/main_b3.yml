@@ -88,54 +88,47 @@ jobs:
           with:
             dotnet-version: '9.x'
 
+        - name: Install Coverlet packages
+          run: dotnet add APITests/APITests.csproj package coverlet.collector --version 3.2.0
+
         - name: Create TestResults directory
           working-directory: APITests
           run: |
+            Remove-Item -Recurse -Force "./TestResults" -ErrorAction SilentlyContinue
             New-Item -ItemType Directory -Path "./TestResults" -Force
-            Write-Host "✅ Created TestResults directory"
+            Write-Host "✅ Created fresh TestResults directory"
           shell: pwsh
 
         - name: Run Tests with Coverage
           working-directory: APITests
           run: |
             dotnet test --configuration Release `
-              /p:CollectCoverage=true `
-              /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput="./TestResults/coverage.cobertura.xml"
+              --collect:"XPlat Code Coverage" `
+              --settings coverlet.runsettings `
+              --logger trx `
+              --results-directory ./TestResults
 
-        - name: Find and Verify Coverage File
+        - name: Find Coverage File
           working-directory: APITests
           run: |
-            # Find the coverage file in any subdirectory
             $coverageFile = Get-ChildItem -Path "./TestResults" -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
         
             if (-not $coverageFile) {
-              Write-Error "❌ No coverage.cobertura.xml file found in TestResults!"
+              Write-Error "❌ No coverage file found! TestResults contents:"
               Get-ChildItem -Path "./TestResults" -Recurse
               exit 1
             }
         
             Write-Host "✅ Found coverage file at: $($coverageFile.FullName)"
-        
-            # Copy to root TestResults for easier access
             Copy-Item -Path $coverageFile.FullName -Destination "./TestResults/coverage.cobertura.xml" -Force
-        
-            # Verify the copied file
-            if (-not (Test-Path "./TestResults/coverage.cobertura.xml")) {
-              Write-Error "❌ Failed to copy coverage file to root TestResults!"
-              exit 1
-            }
           shell: pwsh
 
-        - name: Install ReportGenerator
-          run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-        - name: Verify Code Coverage >= 90%
+        - name: Verify Code Coverage
           working-directory: APITests
           run: |
             $coveragePath = "./TestResults/coverage.cobertura.xml"
             if (-not (Test-Path $coveragePath)) {
-              Write-Error "❌ Coverage file not found at $coveragePath"
+              Write-Error "❌ Coverage file missing after copy!"
               exit 1
             }
         
@@ -150,12 +143,6 @@ jobs:
               exit 1
             }
           shell: pwsh
-
-        - name: Upload TestResults artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: APITestResults
-            path: APITests/TestResults
 
   buildApplicationTests:
     runs-on: windows-latest
