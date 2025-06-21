@@ -123,23 +123,15 @@ jobs:
             }
             [xml]$xml = Get-Content $coverageFile.FullName
             $lineCoverage = $xml.coverage.'line-rate'
-            $coveredLines = $xml.coverage.'@lines-covered'
-            $totalLines = $xml.coverage.'@lines-valid'
 
             if (-not $lineCoverage) {
               Write-Error "❌ Could not read line-rate from XML!"
               exit 1
             }
-            if (-not $coveredLines) {
-              $coveredLines = $xml.coverage.'@lines-covered'
-            }
-            if (-not $totalLines) {
-              $totalLines = $xml.coverage.'@lines-valid'
-            }
             $percent = [math]::Round([double]$lineCoverage * 100, 2)
             
             Write-Host "📊 Cobertura da branch: $percent%"
-            Write-Host "✅ Linhas cobertas: $coveredLines / $totalLines"
+
 
             if ($percent -lt 90) {
               Write-Error "❌ Code coverage is below 90%: $percent%"
