@@ -106,6 +106,12 @@ jobs:
             exit 1
           }
 
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+            name: coverage-report
+            path: coveragereport
+
       - name: Verify Code Coverage >= 90%
         shell: pwsh
         run: |
