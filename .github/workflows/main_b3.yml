@@ -215,7 +215,7 @@ jobs:
             Write-Host "📊 Cobertura da branch: $percent%"
             Write-Host "✅ Linhas cobertas: $coveredLines / $totalLines"
 
-            if ($percent -lt 90) {
+            if ($percent -lt 99) {
               Write-Error "❌ Code coverage is below 90%: $percent%"
               exit 1
             }
