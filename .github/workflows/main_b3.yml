@@ -136,74 +136,17 @@ jobs:
 
       - name: Generate Coverage Report
         run: |
-            reportgenerator `
-              -reports:"TestResults/**/*.cobertura.xml" `
-              -targetdir:"coveragereport" `
-              -reporttypes:Html;Cobertura `
-              -reportassemblyversion:Off `
-              -filefilters:-*Test*.dll
+          reportgenerator `
+            -reports:"TestResults/**/*.cobertura.xml" `
+            -targetdir:"coveragereport" `
+            -reporttypes:Html;Cobertura `
+            -reportassemblyversion:Off
 
-
-      - name: Process Coverage Files
-        shell: pwsh
-        run: |
-            
-            $coverageFiles = "TestResults/solution.cobertura.xml"
-
-            if (-not $coverageFiles -or $coverageFiles.Count -eq 0) {
-              Write-Host "##[error] Nenhum arquivo de cobertura encontrado!"
-              Write-Host "##[group] Conteúdo do diretório TestResults"
-              Get-ChildItem -Path "TestResults" -Recurse
-              Write-Host "##[endgroup]"
+          if (-not (Test-Path "coveragereport/index.html")) {
+              Write-Error "❌ Falha ao gerar o relatório HTML"
               exit 1
-            }
+          }
 
-
-
- 
-      - name: Show Test Results
-        shell: pwsh
-        run: |
-            $trxFile = Get-ChildItem -Path "TestResults" -Filter "*.trx" | Select-Object -First 1
-            if ($trxFile) {
-            Write-Host "##[group] Test Results Summary"
-            [xml]$xml = Get-Content $trxFile.FullName
-            $total = $xml.TestRun.ResultSummary.Counters.total
-            $passed = $xml.TestRun.ResultSummary.Counters.passed
-            $failed = $xml.TestRun.ResultSummary.Counters.failed
-            Write-Host "✅ $passed passed, ❌ $failed failed, 📊 $total total"
-            Write-Host "##[endgroup]"
-            }
-
-
-      - name: Debug TestResults
-        shell: pwsh
-        run: |
-            Write-Host "##[group] Conteúdo de TestResults"
-            Get-ChildItem -Path "TestResults" -Recurse -File | Format-Table -AutoSize
-            Write-Host "##[endgroup]"
-    
-            if (Test-Path "TestResults/solution.cobertura.xml") {
-                Write-Host "✅ Arquivo de cobertura encontrado!"
-                # Mostra as primeiras linhas do arquivo para verificação
-                Get-Content "TestResults/solution.cobertura.xml" -Head 20
-            } else {
-                Write-Host "##[error] Arquivo solution.cobertura.xml não encontrado!"
-                exit 1
-            }
-
-      - name: Generate Coverage Report
-        shell: pwsh
-        run: |
-
-            # Gera o relatório HTML
-            reportgenerator -reports:"TestResults/solution.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
-
-            # Verifica se o relatório foi criado
-            if (-not (Test-Path "coveragereport/index.html")) {
-                Write-Error "❌ Falha ao gerar o relatório HTML"
-                exit 1
-            }
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
