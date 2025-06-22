@@ -105,15 +105,35 @@ jobs:
         run: New-Item -ItemType Directory -Path "TestResults" -Force
 
       - name: Run Tests and Collect Coverage
-        run: 
-            # Comando simplificado e mais robusto
-           dotnet test B3.API/B3.API.sln `
-              --configuration Debug `
-              --logger "trx;LogFileName=test_results.trx" `
-              --results-directory TestResults `
-              /p:CollectCoverage=true `
-              /p:CoverletOutput=TestResults/solution `
-              /p:CoverletOutputFormat=cobertura
+        shell: pwsh
+        run: |
+            $projects = @(
+              "B3.API/B3.Tests/APITests/APITests.csproj",
+              "B3.API/B3.Tests/ApplicationTests/ApplicationTests.csproj",
+              "B3.API/B3.Tests/DomainTests/DomainTests.csproj"
+            )
+
+            foreach ($proj in $projects) {
+              $projName = [System.IO.Path]::GetFileNameWithoutExtension($proj)
+              dotnet test $proj `
+                --no-build `
+                --configuration Debug `
+                --logger "trx;LogFileName=$projName.trx" `
+                --results-directory "TestResults" `
+                /p:CollectCoverage=true `
+                /p:CoverletOutput="TestResults/$projName" `
+                /p:CoverletOutputFormat=cobertura
+            }
+
+            Get-ChildItem -Recurse -Path TestResults -Filter *.cobertura.xml
+
+      - name: Generate Coverage Report
+        run: |
+            reportgenerator `
+            -reports:"TestResults/*.cobertura.xml" `
+            -targetdir:"coveragereport" `
+            -reporttypes:Html;Cobertura
+
 
       - name: Process Coverage Files
         shell: pwsh
