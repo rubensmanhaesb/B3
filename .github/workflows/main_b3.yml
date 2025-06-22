@@ -140,7 +140,6 @@ jobs:
             -reports:"TestResults/**/*.cobertura.xml" `
             -targetdir:"coveragereport" `
             -reporttypes:"Html;Cobertura" `
-            -reportassemblyversion:Off
 
           if (-not (Test-Path "coveragereport/index.html")) {
               Write-Error "❌ Falha ao gerar o relatório HTML"
@@ -159,7 +158,9 @@ jobs:
         shell: pwsh
         run: |
 
-            $coverageFile = Get-ChildItem -Recurse -Path "TestResults" -Filter *.cobertura.xml | Select-Object -First 1
+        
+            $coverageFile = Get-ChildItem -Recurse -Path "TestResults" -Filter *.cobertura.xml | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
             if (-not $coverageFile) {
               Write-Error "❌ Nenhum arquivo de cobertura encontrado!"
               exit 1
