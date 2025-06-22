@@ -127,6 +127,9 @@ jobs:
 
             Get-ChildItem -Recurse -Path TestResults -Filter *.cobertura.xml
 
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
       - name: Generate Coverage Report
         run: |
             reportgenerator `
@@ -165,9 +168,6 @@ jobs:
             Write-Host "✅ $passed passed, ❌ $failed failed, 📊 $total total"
             Write-Host "##[endgroup]"
             }
-
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
 
       - name: Debug TestResults
