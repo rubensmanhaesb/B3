@@ -114,7 +114,7 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: 
             # Comando simplificado e mais robusto
-            dotnet test B3.API/B3.API.Tests/B3.API.Tests.csproj `
+            dotnet test B3.API/B3.API.sln `
               --configuration Debug `
               --results-directory TestResults `
               /p:CollectCoverage=true `
