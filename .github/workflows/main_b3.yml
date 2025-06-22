@@ -114,13 +114,22 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: 
             # Comando simplificado e mais robusto
-           dotnet test B3.API/B3.API.sln `
+            dotnet test B3.API/B3.API.Tests/B3.API.Tests.csproj `
               --configuration Debug `
-              --logger "trx;LogFileName=test_results.trx" `
               --results-directory TestResults `
               /p:CollectCoverage=true `
               /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput=TestResults/coverage
+              /p:CoverletOutput=TestResults/API.cobertura.xml
+
+
+      - name: Generate Aggregated Coverage Report
+        shell: pwsh
+        run: |
+            reportgenerator `
+              -reports:"TestResults/*.cobertura.xml" `
+              -targetdir:"coveragereport" `
+              -reporttypes:HtmlInline_AzurePipelines;Cobertura
+
 
       - name: Show Test Results
         shell: pwsh
