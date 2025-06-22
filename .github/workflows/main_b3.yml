@@ -121,6 +121,7 @@ jobs:
               --collect:"XPlat Code Coverage" `
               /p:CollectCoverage=true `
               /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput=TestResults/coverage.cobertura.xml `
               /p:Exclude="[xunit.*]*%2c[B3.API.Migrations]*"
 
 
