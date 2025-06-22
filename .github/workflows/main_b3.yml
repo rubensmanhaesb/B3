@@ -130,6 +130,10 @@ jobs:
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
+      - name: Add dotnet tools to PATH
+        shell: pwsh
+        run: echo "$env:USERPROFILE\.dotnet\tools" | Out-File -Append $env:GITHUB_PATH
+
       - name: Generate Coverage Report
         run: |
             reportgenerator `
