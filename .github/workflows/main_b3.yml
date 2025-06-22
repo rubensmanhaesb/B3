@@ -201,7 +201,7 @@ jobs:
               exit 1
             }
 
-            [xml]$xml = Get-Content $coverageFile.FullName
+            [xml]$xml = Get-Content $coverageFile
 
             $lineCoverage = $xml.coverage.'line-rate'
             $totalLines   = $xml.coverage.'lines-valid'
