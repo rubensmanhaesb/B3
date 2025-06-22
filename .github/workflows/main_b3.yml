@@ -137,9 +137,11 @@ jobs:
       - name: Generate Coverage Report
         run: |
             reportgenerator `
-            -reports:"TestResults/*.cobertura.xml" `
-            -targetdir:"coveragereport" `
-            -reporttypes:Html;Cobertura
+              -reports:"TestResults/**/*.cobertura.xml" `
+              -targetdir:"coveragereport" `
+              -reporttypes:Html;Cobertura `
+              -reportassemblyversion:Off `
+              -filefilters:-*Test*.dll
 
 
       - name: Process Coverage Files
@@ -214,14 +216,13 @@ jobs:
         shell: pwsh
         run: |
 
-            $coverageFile = "TestResults/solution.cobertura.xml"
-            
+            $coverageFile = Get-ChildItem -Recurse -Path "TestResults" -Filter *.cobertura.xml | Select-Object -First 1
             if (-not $coverageFile) {
-              Write-Error "❌ No solution.cobertura.xml file found!"
+              Write-Error "❌ Nenhum arquivo de cobertura encontrado!"
               exit 1
             }
 
-            [xml]$xml = Get-Content $coverageFile
+            [xml]$xml = Get-Content $coverageFile.FullName
 
             $lineCoverage = $xml.coverage.'line-rate'
             $totalLines   = $xml.coverage.'lines-valid'
