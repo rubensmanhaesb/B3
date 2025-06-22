@@ -108,9 +108,9 @@ jobs:
         shell: pwsh
         run: |
             $projects = @(
-              "B3.API/B3.Tests/APITests/APITests.csproj",
-              "B3.API/B3.Tests/ApplicationTests/ApplicationTests.csproj",
-              "B3.API/B3.Tests/DomainTests/DomainTests.csproj"
+              "APITests/APITests.csproj",
+              "ApplicationTests/ApplicationTests.csproj",
+              "DomainTests/DomainTests.csproj"
             )
 
             foreach ($proj in $projects) {
