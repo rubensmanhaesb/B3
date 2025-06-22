@@ -193,7 +193,9 @@ jobs:
       - name: Verify Code Coverage >= 90% 
         shell: pwsh
         run: |
-            $coverageFile = Get-ChildItem -Path "." -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1
+
+            $coverageFile = "TestResults/coverage.cobertura.xml"
+            
             if (-not $coverageFile) {
               Write-Error "❌ No coverage.cobertura.xml file found!"
               exit 1
