@@ -118,24 +118,10 @@ jobs:
               --configuration Debug `
               --logger "trx;LogFileName=test_results.trx" `
               --results-directory TestResults `
-              --collect:"XPlat Code Coverage"
+              /p:CollectCoverage=true `
+              /p:CoverletOutputFormat=cobertura `
+              /p:CoverletOutput=TestResults/coverage
 
-      - name: Process Coverage Files
-        shell: pwsh
-        run: |
-            $coverageFiles = Get-ChildItem -Path "TestResults" -Recurse -Filter "coverage.cobertura.xml"
-
-            if (-not $coverageFiles -or $coverageFiles.Count -eq 0) {
-              Write-Host "##[error] Nenhum arquivo de cobertura encontrado!"
-              Write-Host "##[group] Conteúdo do diretório TestResults"
-              Get-ChildItem -Path "TestResults" -Recurse
-              Write-Host "##[endgroup]"
-              exit 1
-            }
-
-            Copy-Item $coverageFiles[0].FullName -Destination "TestResults/coverage.cobertura.xml" -Force
-
- 
       - name: Show Test Results
         shell: pwsh
         run: |
@@ -166,7 +152,7 @@ jobs:
                 # Mostra as primeiras linhas do arquivo para verificação
                 Get-Content "TestResults/coverage.cobertura.xml" -Head 20
             } else {
-                Write-Host "##[error] Arquivo coverage.cobertura.xml não encontrado!"
+                Write-Host "Arquivo coverage.cobertura.xml não encontrado!"
                 exit 1
             }
 
