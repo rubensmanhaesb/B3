@@ -114,23 +114,31 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: 
             # Comando simplificado e mais robusto
-            dotnet test B3.API/B3.API.sln `
+           dotnet test B3.API/B3.API.sln `
               --configuration Debug `
+              --logger "trx;LogFileName=test_results.trx" `
               --results-directory TestResults `
               /p:CollectCoverage=true `
-              /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput=TestResults/API.cobertura.xml
+              /p:CoverletOutput=TestResults/solution `
+              /p:CoverletOutputFormat=cobertura
 
-
-      - name: Generate Aggregated Coverage Report
+      - name: Process Coverage Files
         shell: pwsh
         run: |
-            reportgenerator `
-              -reports:"TestResults/*.cobertura.xml" `
-              -targetdir:"coveragereport" `
-              -reporttypes:HtmlInline_AzurePipelines;Cobertura
+            
+            $coverageFiles = "TestResults/solution.cobertura.xml"
+
+            if (-not $coverageFiles -or $coverageFiles.Count -eq 0) {
+              Write-Host "##[error] Nenhum arquivo de cobertura encontrado!"
+              Write-Host "##[group] Conteúdo do diretório TestResults"
+              Get-ChildItem -Path "TestResults" -Recurse
+              Write-Host "##[endgroup]"
+              exit 1
+            }
 
 
+
+ 
       - name: Show Test Results
         shell: pwsh
         run: |
@@ -156,12 +164,12 @@ jobs:
             Get-ChildItem -Path "TestResults" -Recurse -File | Format-Table -AutoSize
             Write-Host "##[endgroup]"
     
-            if (Test-Path "TestResults/coverage.cobertura.xml") {
+            if (Test-Path "TestResults/solution.cobertura.xml") {
                 Write-Host "✅ Arquivo de cobertura encontrado!"
                 # Mostra as primeiras linhas do arquivo para verificação
-                Get-Content "TestResults/coverage.cobertura.xml" -Head 20
+                Get-Content "TestResults/solution.cobertura.xml" -Head 20
             } else {
-                Write-Host "Arquivo coverage.cobertura.xml não encontrado!"
+                Write-Host "##[error] Arquivo solution.cobertura.xml não encontrado!"
                 exit 1
             }
 
@@ -170,7 +178,7 @@ jobs:
         run: |
 
             # Gera o relatório HTML
-            reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+            reportgenerator -reports:"TestResults/solution.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
 
             # Verifica se o relatório foi criado
             if (-not (Test-Path "coveragereport/index.html")) {
@@ -185,14 +193,14 @@ jobs:
             path: coveragereport
 
 
-      - name: Verify Code Coverage >= 90% 
+      - name: Verify Code Coverage (Solution) >= 90% 
         shell: pwsh
         run: |
 
-            $coverageFile = "TestResults/coverage.cobertura.xml"
+            $coverageFile = "TestResults/solution.cobertura.xml"
             
             if (-not $coverageFile) {
-              Write-Error "❌ No coverage.cobertura.xml file found!"
+              Write-Error "❌ No solution.cobertura.xml file found!"
               exit 1
             }
 
