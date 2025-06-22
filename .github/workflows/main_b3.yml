@@ -99,53 +99,89 @@ jobs:
                 Remove-Item -Recurse -Force "TestResults"
             }
 
+      - name: Install Coverlet Packages
+        shell: pwsh
+        working-directory: B3.API/B3.API
+        run: |
+            dotnet add package coverlet.collector --version 6.0.0
+            dotnet add package coverlet.msbuild --version 6.0.0
+
 
       - name: Create TestResults Directory
         shell: pwsh
         run: New-Item -ItemType Directory -Path "TestResults" -Force
 
       - name: Run Tests and Collect Coverage
+        run: 
+            # Comando simplificado e mais robusto
+           dotnet test B3.API/B3.API.sln `
+              --configuration Debug `
+              --logger "trx;LogFileName=test_results.trx" `
+              --results-directory TestResults `
+              --collect:"XPlat Code Coverage"
+
+      - name: Process Coverage Files
         shell: pwsh
         run: |
-            $projects = @(
-              "APITests/APITests.csproj",
-              "ApplicationTests/ApplicationTests.csproj",
-              "DomainTests/DomainTests.csproj"
-            )
+            $coverageFiles = Get-ChildItem -Path "TestResults" -Recurse -Filter "coverage.cobertura.xml"
 
-            foreach ($proj in $projects) {
-              $projName = [System.IO.Path]::GetFileNameWithoutExtension($proj)
-              dotnet test $proj `
-                --no-build `
-                --configuration Debug `
-                --logger "trx;LogFileName=$projName.trx" `
-                --results-directory "TestResults" `
-                /p:CollectCoverage=true `
-                /p:CoverletOutput="TestResults/$projName" `
-                /p:CoverletOutputFormat=cobertura
+            if (-not $coverageFiles -or $coverageFiles.Count -eq 0) {
+              Write-Host "##[error] Nenhum arquivo de cobertura encontrado!"
+              Write-Host "##[group] Conteúdo do diretório TestResults"
+              Get-ChildItem -Path "TestResults" -Recurse
+              Write-Host "##[endgroup]"
+              exit 1
             }
 
-            Get-ChildItem -Recurse -Path TestResults -Filter *.cobertura.xml
+            Copy-Item $coverageFiles[0].FullName -Destination "TestResults/coverage.cobertura.xml" -Force
+
+ 
+      - name: Show Test Results
+        shell: pwsh
+        run: |
+            $trxFile = Get-ChildItem -Path "TestResults" -Filter "*.trx" | Select-Object -First 1
+            if ($trxFile) {
+            Write-Host "##[group] Test Results Summary"
+            [xml]$xml = Get-Content $trxFile.FullName
+            $total = $xml.TestRun.ResultSummary.Counters.total
+            $passed = $xml.TestRun.ResultSummary.Counters.passed
+            $failed = $xml.TestRun.ResultSummary.Counters.failed
+            Write-Host "✅ $passed passed, ❌ $failed failed, 📊 $total total"
+            Write-Host "##[endgroup]"
+            }
 
       - name: Install ReportGenerator
         run: dotnet tool install --global dotnet-reportgenerator-globaltool
 
-      - name: Add dotnet tools to PATH
+
+      - name: Debug TestResults
         shell: pwsh
-        run: echo "$env:USERPROFILE\.dotnet\tools" | Out-File -Append $env:GITHUB_PATH
+        run: |
+            Write-Host "##[group] Conteúdo de TestResults"
+            Get-ChildItem -Path "TestResults" -Recurse -File | Format-Table -AutoSize
+            Write-Host "##[endgroup]"
+    
+            if (Test-Path "TestResults/coverage.cobertura.xml") {
+                Write-Host "✅ Arquivo de cobertura encontrado!"
+                # Mostra as primeiras linhas do arquivo para verificação
+                Get-Content "TestResults/coverage.cobertura.xml" -Head 20
+            } else {
+                Write-Host "##[error] Arquivo coverage.cobertura.xml não encontrado!"
+                exit 1
+            }
 
       - name: Generate Coverage Report
+        shell: pwsh
         run: |
-          reportgenerator `
-            -reports:"TestResults/**/*.cobertura.xml" `
-            -targetdir:"coveragereport" `
-            -reporttypes:"Html;Cobertura" `
 
-          if (-not (Test-Path "coveragereport/index.html")) {
-              Write-Error "❌ Falha ao gerar o relatório HTML"
-              exit 1
-          }
+            # Gera o relatório HTML
+            reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
 
+            # Verifica se o relatório foi criado
+            if (-not (Test-Path "coveragereport/index.html")) {
+                Write-Error "❌ Falha ao gerar o relatório HTML"
+                exit 1
+            }
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
@@ -154,19 +190,17 @@ jobs:
             path: coveragereport
 
 
-      - name: Verify Code Coverage (Solution) >= 90% 
+      - name: Verify Code Coverage >= 90% 
         shell: pwsh
         run: |
-
-        
             $coverageFile = Get-ChildItem -Recurse -Path "TestResults" -Filter *.cobertura.xml | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-
+            
             if (-not $coverageFile) {
-              Write-Error "❌ Nenhum arquivo de cobertura encontrado!"
+              Write-Error "❌ No coverage.cobertura.xml file found!"
               exit 1
             }
 
-            [xml]$xml = Get-Content $coverageFile.FullName
+            [xml]$xml = Get-Content $coverageFile
 
             $lineCoverage = $xml.coverage.'line-rate'
             $totalLines   = $xml.coverage.'lines-valid'
