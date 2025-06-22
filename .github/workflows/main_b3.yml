@@ -114,14 +114,11 @@ jobs:
       - name: Run Tests and Collect Coverage
         run: 
             # Comando simplificado e mais robusto
-            dotnet test B3.API/B3.API.sln `
+           dotnet test B3.API/B3.API.sln `
               --configuration Debug `
-              --logger trx `
+              --logger "trx;LogFileName=test_results.trx" `
               --results-directory TestResults `
-              /p:CollectCoverage=true `
-              /p:CoverletOutputFormat=cobertura `
-              /p:CoverletOutput=TestResults/coverage.cobertura.xml `
-              /p:Exclude="[xunit.*]*%2c[B3.API.Migrations]*"
+              --collect:"XPlat Code Coverage"
 
       - name: Process Coverage Files
         shell: pwsh
