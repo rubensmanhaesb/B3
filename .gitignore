@@ -50,3 +50,6 @@ Backup*/
 
 # Pasta de arquivos temporários
 .vs/
+
+# Ignore test results
+**/TestResults/

@@ -1,13 +1,14 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - B3
+﻿name: Build and deploy ASP.Net Core app to Azure Web App - B3
 
 on:
   push:
     branches:
       - main 
+      - V1
   workflow_dispatch:
 
 jobs:
-  build:
+  buildAngular:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -17,11 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.x'
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -72,8 +68,168 @@ jobs:
               exit 1
           }
 
+      - name: Upload Angular build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wwwroot
+          path: B3.API/wwwroot
+
+  buildAPI:
+    runs-on: windows-latest
+    needs: [buildAngular]
+    permissions:
+      contents: read
+    
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}\publish
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with: 
+          dotnet-version: '9.x'
+
+
+      - name: Clean old TestResults
+        shell: pwsh
+        run: |
+            if (Test-Path "TestResults") {
+                Remove-Item -Recurse -Force "TestResults"
+            }
+
+      - name: Install Coverlet Packages
+        shell: pwsh
+        working-directory: B3.API/B3.API
+        run: |
+            dotnet add package coverlet.collector --version 6.0.0
+            dotnet add package coverlet.msbuild --version 6.0.0
+
+
+      - name: Create TestResults Directory
+        shell: pwsh
+        run: New-Item -ItemType Directory -Path "TestResults" -Force
+
+      - name: Run Tests and Collect Coverage
+        run: 
+            # Comando simplificado e mais robusto
+           dotnet test B3.API/B3.API.sln `
+              --configuration Debug `
+              --logger "trx;LogFileName=test_results.trx" `
+              --results-directory TestResults `
+              --collect:"XPlat Code Coverage"
+
+      - name: Process Coverage Files
+        shell: pwsh
+        run: |
+            $coverageFiles = Get-ChildItem -Path "TestResults" -Recurse -Filter "coverage.cobertura.xml"
+
+            if (-not $coverageFiles -or $coverageFiles.Count -eq 0) {
+              Write-Host "##[error] Nenhum arquivo de cobertura encontrado!"
+              Write-Host "##[group] Conteúdo do diretório TestResults"
+              Get-ChildItem -Path "TestResults" -Recurse
+              Write-Host "##[endgroup]"
+              exit 1
+            }
+
+            Copy-Item $coverageFiles[0].FullName -Destination "TestResults/coverage.cobertura.xml" -Force
+
+ 
+      - name: Show Test Results
+        shell: pwsh
+        run: |
+            $trxFile = Get-ChildItem -Path "TestResults" -Filter "*.trx" | Select-Object -First 1
+            if ($trxFile) {
+            Write-Host "##[group] Test Results Summary"
+            [xml]$xml = Get-Content $trxFile.FullName
+            $total = $xml.TestRun.ResultSummary.Counters.total
+            $passed = $xml.TestRun.ResultSummary.Counters.passed
+            $failed = $xml.TestRun.ResultSummary.Counters.failed
+            Write-Host "✅ $passed passed, ❌ $failed failed, 📊 $total total"
+            Write-Host "##[endgroup]"
+            }
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+
+      - name: Debug TestResults
+        shell: pwsh
+        run: |
+            Write-Host "##[group] Conteúdo de TestResults"
+            Get-ChildItem -Path "TestResults" -Recurse -File | Format-Table -AutoSize
+            Write-Host "##[endgroup]"
+    
+            if (Test-Path "TestResults/coverage.cobertura.xml") {
+                Write-Host "✅ Arquivo de cobertura encontrado!"
+                # Mostra as primeiras linhas do arquivo para verificação
+                Get-Content "TestResults/coverage.cobertura.xml" -Head 20
+            } else {
+                Write-Host "##[error] Arquivo coverage.cobertura.xml não encontrado!"
+                exit 1
+            }
+
+      - name: Generate Coverage Report
+        shell: pwsh
+        run: |
+
+            # Gera o relatório HTML
+            reportgenerator -reports:"TestResults/coverage.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+
+            # Verifica se o relatório foi criado
+            if (-not (Test-Path "coveragereport/index.html")) {
+                Write-Error "❌ Falha ao gerar o relatório HTML"
+                exit 1
+            }
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+            name: coverage-report
+            path: coveragereport
+
+
+      - name: Verify Code Coverage >= 90% 
+        shell: pwsh
+        run: |
+            $coverageFile = Get-ChildItem -Recurse -Path "TestResults" -Filter *.cobertura.xml | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            
+            if (-not $coverageFile) {
+              Write-Error "❌ No coverage.cobertura.xml file found!"
+              exit 1
+            }
+
+            [xml]$xml = Get-Content $coverageFile
+
+            $lineCoverage = $xml.coverage.'line-rate'
+            $totalLines   = $xml.coverage.'lines-valid'
+            $coveredLines = $xml.coverage.'lines-covered'
+
+            if (-not $lineCoverage) {
+              Write-Error "❌ Could not read line-rate from XML!"
+              exit 1
+            }
+
+            $percent = [math]::Round([double]$lineCoverage * 100, 2)
+
+            Write-Host "📊 Cobertura da branch: $percent%"
+            Write-Host "✅ Linhas cobertas: $coveredLines / $totalLines"
+
+            if ($percent -lt 90) {
+              Write-Error "❌ Code coverage is below 90%: $percent%"
+              exit 1
+            }
+
+
       - name: Build .NET solution
         run: dotnet build B3.API/B3.API.sln --configuration Release
+
+      - name: Download Angular wwwroot artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wwwroot
+          path: B3.API/wwwroot
 
       - name: Publish .NET application
         shell: pwsh
@@ -113,7 +269,7 @@ jobs:
 
   deploy:
     runs-on: windows-latest
-    needs: build
+    needs: [buildAPI, buildAngular]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
