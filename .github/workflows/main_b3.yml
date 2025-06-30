@@ -267,19 +267,19 @@ jobs:
           name: .net-app
           path: ${{ env.PUBLISH_DIR }}
 
-  deploy:
+  #########################################
+  # DEPLOY QA - automático
+  #########################################
+  deploy-qa:
     runs-on: windows-latest
     needs: [buildAPI, buildAngular]
     environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      name: 'QA'
     permissions:
       id-token: write
       contents: read
-    
     env:
       PUBLISH_DIR: ${{ github.workspace }}\publish
-
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -300,17 +300,53 @@ jobs:
               exit 1
           }
 
-      - name: Login to Azure
+
+      - name: Login to Azure (QA)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9753180B52C14A39AEA0423D0E37CBFB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FE4C6C46B2A6400C9944974F7AC99ED2 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_23770D41FB6849F389A387162CF34810 }}
+
+      - name: Deploy to Azure Web App (QA)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'b3-qa'
+          slot-name: 'production'
+          package: ${{ env.PUBLISH_DIR }}
+
+  #########################################
+  # DEPLOY PRODUÇÃO - com aprovação
+  #########################################
+  deploy-prod:
+    runs-on: windows-latest
+    needs: [deploy-qa]
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}\publish
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+          path: ${{ env.PUBLISH_DIR }}
+
+      - name: Login to Azure (Production)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8DB310D194E549EDAEE63FFD4ACCE025 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_2A355AA9F62F4B6D8BE19857D3969D56 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_DC15C30FD6CC4D6A8B1A793499BC115F }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (Production)
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'B3'
-          slot-name: 'Production'
+          app-name: 'b3'
+          slot-name: 'production'
           package: ${{ env.PUBLISH_DIR }}
