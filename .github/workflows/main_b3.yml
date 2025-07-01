@@ -274,7 +274,7 @@ jobs:
     runs-on: windows-latest
     needs: [buildAPI, buildAngular]
     environment:
-      name: 'QA'
+      name: 'Production'
     permissions:
       id-token: write
       contents: read
@@ -301,14 +301,14 @@ jobs:
           }
 
 
-      - name: Login to Azure (QA)
+      - name: Login to Azure (Production)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9753180B52C14A39AEA0423D0E37CBFB }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FE4C6C46B2A6400C9944974F7AC99ED2 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_23770D41FB6849F389A387162CF34810 }}
 
-      - name: Deploy to Azure Web App (QA)
+      - name: Deploy to Azure Web App (Production)
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'b3-qa'
