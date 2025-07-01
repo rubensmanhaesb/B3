@@ -324,7 +324,7 @@ jobs:
   #########################################
   deploy-prod:
     runs-on: windows-latest
-    needs: [buildAPI, buildAngular]
+    needs: [deploy-qa]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
