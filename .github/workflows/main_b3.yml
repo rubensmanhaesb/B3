@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main 
-      - V1
   workflow_dispatch:
 
 jobs:
@@ -267,9 +266,65 @@ jobs:
           name: .net-app
           path: ${{ env.PUBLISH_DIR }}
 
-  deploy:
+  #########################################
+  # DEPLOY QA - automático
+  #########################################
+  deploy-qa:
     runs-on: windows-latest
     needs: [buildAPI, buildAngular]
+    environment:
+      name: 'QA'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      PUBLISH_DIR: ${{ github.workspace }}\publish
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+          path: ${{ env.PUBLISH_DIR }}
+
+      - name: Verify downloaded files
+        shell: pwsh
+        run: |
+          $indexPath = "$env:PUBLISH_DIR\wwwroot\index.html"
+          if (-not (Test-Path $indexPath)) {
+              Write-Error "index.html missing in downloaded artifact!"
+              exit 1
+          }
+          if ((Get-Item $indexPath).Length -eq 0) {
+              Write-Error "Downloaded index.html is empty!"
+              exit 1
+          }
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_QA }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_QA }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_QA }}
+
+
+      - name: Deploy to QA Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'b3qa'
+          slot-name: 'Production'
+          package: ${{ env.PUBLISH_DIR }}
+
+
+  #########################################
+  # DEPLOY PRODUÇÃO - com aprovação
+  #########################################
+  deploy-prod:
+    runs-on: windows-latest
+    needs: [deploy-qa]
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
