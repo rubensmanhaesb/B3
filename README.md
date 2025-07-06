@@ -35,9 +35,12 @@ CI/CD e Publicação
 
 O projeto conta com pipeline de **CI/CD** automatizado utilizando **GitHub Actions**, incluindo as etapas de build, testes, cobertura e deploy automatizado para o Azure App Service.
 
-A aplicação está publicada e disponível em ambiente de produção no seguinte endereço:
+A aplicação está publicada e disponível nos seguintes ambientes:
 
-🌐 https://b3.azurewebsites.net/
+- **Produção**: 🌐 https://b3.azurewebsites.net/  
+- **Teste (QA)**: 🌐 https://b3qa.azurewebsites.net/
+
+A publicação em produção é realizada **somente após aprovação manual**, garantindo que todas as validações no ambiente de teste tenham sido concluídas com sucesso.
 
 ################################################################################
 # Executando com Docker

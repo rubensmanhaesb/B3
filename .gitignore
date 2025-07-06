@@ -53,3 +53,6 @@ Backup*/
 
 # Ignore test results
 **/TestResults/
+
+# Ignorar todos os arquivos README.md (em qualquer pasta)
+README.md
