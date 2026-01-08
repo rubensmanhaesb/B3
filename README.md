@@ -33,9 +33,16 @@ A aplicação é 100% **containerizada com Docker**.
 CI/CD e Publicação
 ################################################################################
 
-O projeto conta com pipeline de **CI/CD** automatizado utilizando **GitHub Actions**, incluindo as etapas de build, testes, cobertura e deploy automatizado para o Azure App Service.
+O projeto conta com pipeline de CI/CD automatizado utilizando GitHub Actions, contemplando:
+- Build automatizado e restauração de dependências  
+- Execução de testes automatizados (unitários e de infraestrutura)  
+- Verificações de qualidade e cobertura de código  
+- Build de imagem de container  
+- Publicação em ambientes de nuvem (ex.: Azure App Service ou equivalente)
 
-A aplicação está publicada e disponível nos seguintes ambientes:
+A publicação em produção deve ser protegida por **aprovação manual**, garantindo que todas as validações em ambientes não produtivos tenham sido concluídas com sucesso antes do deploy final.
+
+Ambientes publicados
 
 - **Produção**: 🌐 https://b3.azurewebsites.net/  
 - **Teste (QA)**: 🌐 https://b3qa.azurewebsites.net/
@@ -43,6 +50,11 @@ A aplicação está publicada e disponível nos seguintes ambientes:
 A publicação em produção é realizada **somente após aprovação manual**, garantindo que todas as validações no ambiente de teste tenham sido concluídas com sucesso.
 
 <img width="1287" height="190" alt="image" src="https://github.com/user-attachments/assets/79ea2c23-d5c3-4742-9bc9-b6bf15558f09" />
+
+Aguardando Aprovação
+
+<img width="1529" height="451" alt="image" src="https://github.com/user-attachments/assets/fd1c6e6f-d3a1-4cc9-815e-c94093410be7" />
+
 
 
 ################################################################################
