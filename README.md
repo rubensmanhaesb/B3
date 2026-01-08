@@ -42,6 +42,9 @@ A aplicação está publicada e disponível nos seguintes ambientes:
 
 A publicação em produção é realizada **somente após aprovação manual**, garantindo que todas as validações no ambiente de teste tenham sido concluídas com sucesso.
 
+<img width="1287" height="190" alt="image" src="https://github.com/user-attachments/assets/79ea2c23-d5c3-4742-9bc9-b6bf15558f09" />
+
+
 ################################################################################
 # Executando com Docker
 ################################################################################
